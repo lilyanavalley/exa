@@ -1,0 +1,7 @@
+
+/target
+*.log
+**/settings.ron
+*.tracy
+**/.DS_Store
+**/history.bin

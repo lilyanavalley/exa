@@ -1,0 +1,22 @@
+
+[package]
+name = "executor"
+description = "Experimental Game 'A'"
+authors = []
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+fyrox = {workspace = true}
+firedbg-lib = "0.1.2"
+game = { path = "../game" }
+tracing = "0.1.40"
+clap = "4.5.4"
+
+[dependencies.tracing-subscriber]
+version = "0.3.18"
+features = []
+
+[dependencies.tracing-tracy]
+version = "0.11.0"
+features = ["enable", "only-localhost", "broadcast", "fibers", "system-tracing", "sampling", "code-transfer", "callstack-inlines"]
