@@ -1,0 +1,41 @@
+
+name: Scheduled Build
+
+on:
+  schedule:
+    - cron: '0 14 * * *'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+
+  build_ubuntu:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Linux Build
+      run: cargo build --verbose
+    - name: Run Linux tests
+      run: cargo test --verbose
+
+  build_windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Windows Build
+      run: cargo build --verbose
+    - name: Run Windows tests
+      run: cargo test --verbose
+
+  build_macos:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: MacOS Build
+      run: cargo build --verbose
+    - name: Run MacOS tests
+      run: cargo test --verbose
