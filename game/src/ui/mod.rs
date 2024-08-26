@@ -6,8 +6,8 @@ use fyrox::{
         visitor::prelude::*
     },
     gui,
+    engine::InitializedGraphicsContext,
     plugin::{ Plugin, PluginContext },
-    renderer
 };
 use tracing::instrument;
 
@@ -18,9 +18,10 @@ pub mod developer;
 #[derive(Debug, Reflect, Visit)]
 pub struct UiSubset {
 
+    /// Developer Overlay
     #[reflect(hidden)]
     #[visit(skip)]
-    pub developer_overlay:  developer::DeveloperOverlay,
+    pub developer_overlay:  Option<developer::DeveloperOverlay>,
 
     // #[reflect(hidden)]
     // #[visit(skip)]
@@ -32,45 +33,43 @@ impl UiSubset {
 
     pub fn new(plugin: &mut PluginContext) -> Self {
 
-        // let ui_first = plugin.user_interfaces.first();
-        // let build_context = &mut ui_first.build_ctx();
+        // TODO: Perform UI setup routine here.
+        UiSubset::default()
 
-        let developer_overlay = developer::DeveloperOverlay::new(plugin, true);
+    }
 
-        UiSubset {
-            developer_overlay
+    pub fn developeroverlay_set(&mut self, show: bool, plugin: &mut PluginContext) {
+        if show {
+            self.developer_overlay = Some(developer::DeveloperOverlay::new(plugin));
         }
-
-    }
-
-    pub fn developer_overlay(&self) -> &developer::DeveloperOverlay {
-        &self.developer_overlay
-    }
-
-    pub fn set_developer_overlay(&mut self, enabled: bool) {
-        self.developer_overlay.set_show(enabled);
+        else {
+            self.developer_overlay = None;
+        }
     }
 
     #[instrument(name = "UI Update", skip(context))]
     pub fn update(&mut self, context: &mut PluginContext) {
         
-        let ui_first = context.user_interfaces.first();
-
-        // Update the Developer Overlay if it is shown.
-        if self.developer_overlay.show() {
+        // Update the Developer Overlay, if it is shown.
+        if let Some(developer_overlay) = &mut self.developer_overlay {
             
+            let ui_first = context.user_interfaces.first();
+            let igc = context.graphics_context.as_initialized_ref();
+
             // Delta counter.
             let dt = context.dt;
             ui_first.send_message(gui::text::TextMessage::text(
-                self.developer_overlay.dt,
+                developer_overlay.dt,
                 gui::message::MessageDirection::ToWidget,
                 format!("Delta {}", dt)
             ));
 
-            // ui_first.send_message(gui::text::TextMessage::text(
-            //     self.developer_overlay.fps,
-
-            // ))
+            let fps = igc.renderer.get_statistics().frames_per_second;
+            ui_first.send_message(gui::text::TextMessage::text(
+                developer_overlay.fps,
+                gui::message::MessageDirection::ToWidget,
+                format!("FPS {}", fps)
+            ));
 
         }
 
@@ -81,7 +80,7 @@ impl UiSubset {
 impl Default for UiSubset {
     fn default() -> Self {
         UiSubset {
-            developer_overlay:      developer::DeveloperOverlay::default()
+            developer_overlay:      None,
         }
     }
 }
