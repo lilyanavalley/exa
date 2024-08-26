@@ -21,7 +21,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Install build deps
-      run: apt install -y pkg-config libasound2-dev
+      run: sudo apt install -y pkg-config libasound2-dev 
     - name: Run tests
       run: cargo test --verbose
 
