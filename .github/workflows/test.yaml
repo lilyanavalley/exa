@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - "live"
-      - "v/*.*.*"
+      - "v/*.*"
       - "ghactions"
   pull_request:
     branches: [ "live" ]
