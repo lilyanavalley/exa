@@ -13,3 +13,5 @@ tracy-client-sys    = "0.22"
 ring                = "0.17.8"  # Cryptographic operations.
 chrono              = "0.4.38"  # Time-keeping.
 fluent-bundle       = "0.15.3"  # Localization and translations layer.
+strum               = "0.26.3"  # Property Editor enum support.
+strum_macros        = "0.26.3"  # Property Editor enum support.

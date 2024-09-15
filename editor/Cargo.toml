@@ -8,3 +8,5 @@ edition = "2021"
 fyrox = {workspace = true}
 fyroxed_base = {workspace = true}
 game = { path = "../game" }
+strum = "0.26.3"
+strum_macros = "0.26.3"
