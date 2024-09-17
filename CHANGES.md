@@ -13,6 +13,11 @@ This is the inception history of the project. Pretty bare-bones around here...
 - Added [.gitignore](./.gitignore).
 - Added [tracy](./game/src/tracy.rs) for game tracing capabilities.
 
+- Introduces the following `game/` objects:
+    - [Player (script)](./game/src/player/mod.rs),
+    - [Player Skybox](./game/src/player/skybox.rs) and,
+    - [Settings](./game/src/settings.rs). 
+
 - Introduces dependencies:
     - [strum](https://crates.io/crates/strum) v0.26.3
     - [strum_macros](https://crates.io/crates/strum_macros) v0.26.3

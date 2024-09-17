@@ -1,13 +1,15 @@
 //!
 //! Game project.
 //! 
+//! TODO
+//! 
 
 
-mod player;     /// Player object and script.
-mod settings;   /// Player/game settings.
-mod ui;         /// Game User Interface.
-mod eventline;  /// Events processor subroutine.
-mod tracy;      /// Tracy utilities and subroutines.
+pub mod player;     /// Player object and script.
+pub mod settings;   /// Player/game settings.
+pub mod ui;         /// Game User Interface.
+mod tracy;          /// Tracy utilities and subroutines.
+mod utilities;      /// Game utilities.
 
 
 use fyrox::{
@@ -16,7 +18,6 @@ use fyrox::{
         reflect::prelude::*,
         visitor::prelude::*
     },
-    engine::{self, InitializedGraphicsContext},
     event::Event,
     gui::{ message:: { MessageDirection, UiMessage }, text::{Text, TextMessage}, UiNode },
     plugin::{ Plugin, PluginContext, PluginRegistrationContext },
@@ -25,10 +26,7 @@ use fyrox::{
 use std::path::Path;
 use { tracy_client, tracy_client_sys };
 use tracing:: { trace, trace_span, debug, debug_span, info, info_span, warn, warn_span, error, error_span, instrument };
-
-use crate::{
-    player::Player,
-};
+use crate::utilities::*;
 
 
 /// Game title.
@@ -40,11 +38,11 @@ const GAME_VERSION:     &'static str    = env!("CARGO_PKG_VERSION");
 #[derive(Debug, Reflect, Visit, Default)]
 pub struct Game {
 
-    /// Active scene.
-    scene:      Handle<Scene>,
+    /// Active Scene.
+    scene:          Handle<Scene>,
 
     /// User Interfaces.
-    ui:         ui::UiSubset,
+    ui:             ui::UiSubset,
 
 }
 
@@ -58,7 +56,6 @@ impl Game {
         context
             .async_scene_loader
             .request(scene_path.unwrap_or("data/scene.rgs"));
-
 
         Self {
             scene:      Handle::NONE,
@@ -81,16 +78,14 @@ impl Plugin for Game {
     )]
     fn update(&mut self, context: &mut PluginContext) {
 
-        // Run UI updates.
-        self.ui.update(context);
-
         // Retrieve Tracy client handle.
         let _tracy = tracy_client::Client::running();
 
+        // Run UI updates.
+        self.ui.update(context);
+
         // Retrieve initialized graphics context for updating.
         if let fyrox::engine::GraphicsContext::Initialized(igc) = context.graphics_context {
-
-            trace_span!("Initialized Graphics Context Routine");
 
             // If Tracy is running, collect a frame image.
             if _tracy.is_some() {
@@ -116,11 +111,11 @@ impl Plugin for Game {
                 // For reading cause of incoming events.
             },
 
-            Event::WindowEvent { 
-                window_id, event
-            }                       => {
-                // Window events.
-            },
+            // Event::WindowEvent { 
+            //     window_id, event
+            // }                       => {
+            //     // Window events.
+            // },
 
             // Event::DeviceEvent {
             //     device_id, event
@@ -173,13 +168,14 @@ impl Plugin for Game {
     fn on_scene_loaded(
         &mut self,
         path: &Path,
-        scene: Handle<Scene>,
+        new_scene: Handle<Scene>,
         data: &[u8],
         context: &mut PluginContext,
     ) {
 
-        info!("Scene ({scene:?}) loaded: {path}", scene = scene, path = path.display());
-        self.scene = scene;
+        // Report and set the scene into `self`.
+        info!("Scene ({scene:?}) loaded: {path}", scene = new_scene, path = path.display());
+        self.scene = new_scene;
 
     }
     
@@ -230,6 +226,7 @@ impl Plugin for Game {
     ) {
 
         trace!("Graphics context initialized!");
+        // TODO: Register tracy framecollector render pass.
 
     }
     

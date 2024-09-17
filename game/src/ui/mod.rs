@@ -1,4 +1,8 @@
 
+//! 
+//! TODO
+//! 
+
 use fyrox::{
     core::{
         pool::Handle,
@@ -13,10 +17,13 @@ use tracing::instrument;
 
 
 pub mod developer;
+pub mod coremenu;
 
 
 #[derive(Debug, Reflect, Visit)]
 pub struct UiSubset {
+
+    // TODO: Put Core Menu UI module here.
 
     /// Developer Overlay
     #[reflect(hidden)]
