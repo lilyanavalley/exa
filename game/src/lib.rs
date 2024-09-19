@@ -78,23 +78,8 @@ impl Plugin for Game {
     )]
     fn update(&mut self, context: &mut PluginContext) {
 
-        // Retrieve Tracy client handle.
-        let _tracy = tracy_client::Client::running();
-
         // Run UI updates.
         self.ui.update(context);
-
-        // Retrieve initialized graphics context for updating.
-        if let fyrox::engine::GraphicsContext::Initialized(igc) = context.graphics_context {
-
-            // If Tracy is running, collect a frame image.
-            if _tracy.is_some() {
-                let _tracy = _tracy.unwrap();
-                tracy::frameimage_collect(igc);
-                _tracy.frame_mark();
-            }
-
-        }
 
     }
 
@@ -232,6 +217,17 @@ impl Plugin for Game {
     
     #[instrument(skip(_context))]
     fn before_rendering(&mut self, _context: PluginContext) {
+
+        // TODO: Consider moving tracy handle to plugin context.
+        // Retrieve Tracy client handle.
+        let _tracy = tracy_client::Client::running();
+
+        // If Tracy is running, collect a frame image.
+        if _tracy.is_some() {
+            let _tracy = _tracy.unwrap();
+            // tracy::frameimage_collect(igc);
+            _tracy.frame_mark();
+        }
 
     }
     
