@@ -7,7 +7,7 @@ pub fn with_igc<F>(
     graphics_context: &mut engine::GraphicsContext,
     mut function: F
 )
-    where F: FnMut(&engine::InitializedGraphicsContext) -> ()
+    where F: FnMut(&mut engine::InitializedGraphicsContext) -> ()
 {
 
     // Only while the graphics context *is initialized* should we retrieve it.
@@ -16,3 +16,4 @@ pub fn with_igc<F>(
     }
 
 }
+
