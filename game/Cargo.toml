@@ -8,10 +8,14 @@ edition = "2021"
 fyrox               = {workspace = true} # Game engine.
 firedbg-lib         = "0.1.2"   # On-the-fly debugging for games and async.
 tracing             = "0.1.40"  # App tracing and profiling.
-tracy-client        = "0.17"
-tracy-client-sys    = "0.22"
-ring                = "0.17.8"  # Cryptographic operations.
-chrono              = "0.4.38"  # Time-keeping.
+tracy-client        = { version = "0.17", optional = true }
+tracy-client-sys    = { version = "0.22", optional = true }
+# ring                = "0.17.8"  # Cryptographic operations.
+# chrono              = "0.4.38"  # Time-keeping.
 fluent-bundle       = "0.15.3"  # Localization and translations layer.
 strum               = "0.26.3"  # Property Editor enum support.
 strum_macros        = "0.26.3"  # Property Editor enum support.
+
+[features]
+tracing = []
+tracy   = ["tracing", "dep:tracy-client", "dep:tracy-client-sys"]

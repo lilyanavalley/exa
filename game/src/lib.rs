@@ -11,6 +11,9 @@ pub mod ui;         /// Game User Interface.
 mod tracy;          /// Tracy utilities and subroutines.
 mod utilities;      /// Game utilities.
 
+#[cfg(feature = "tracy")]
+mod tracy;          /// Tracy utilities and subroutines.
+
 
 use fyrox::{
     core::{
@@ -28,6 +31,8 @@ use { tracy_client, tracy_client_sys };
 use tracing:: { trace, trace_span, debug, debug_span, info, info_span, warn, warn_span, error, error_span, instrument };
 use crate::utilities::*;
 
+#[cfg(feature = "tracy")]
+use { tracy_client, tracy_client_sys };
 
 /// Game title.
 const GAME_TITLE:       &'static str    = "Experiment A";
@@ -87,11 +92,15 @@ impl Plugin for Game {
         // Retrieve initialized graphics context for updating.
         if let fyrox::engine::GraphicsContext::Initialized(igc) = context.graphics_context {
 
+            #[cfg(feature="tracy")]
+            {
             // If Tracy is running, collect a frame image.
+                let _tracy = tracy_client::Client::running();
             if _tracy.is_some() {
                 let _tracy = _tracy.unwrap();
                 tracy::frameimage_collect(igc);
                 _tracy.frame_mark();
+                }
             }
 
         }
