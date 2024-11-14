@@ -12,7 +12,8 @@ fyrox = {workspace = true}
 firedbg-lib = "0.1.2"
 game = { path = "../game" }
 tracing = "0.1.40"
-clap = "4.5.4"
+# clap = "4.5.4"
+# directories = "5.0.1"
 
 [dependencies.tracing-subscriber]
 version = "0.3.18"
