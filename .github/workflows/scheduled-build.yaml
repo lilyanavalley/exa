@@ -40,3 +40,15 @@ jobs:
       - uses: ./.github/workflows/packager.yaml
         with:
           os: ${{ matrix.os }}
+      - name: Upload installable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: exa-installer-${{ matrix.os }}
+          path: target/release/exa_**.[app, deb, dmg, msi, AppImage]
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: exa-${{ matrix.os }}
+          path: |
+            - **
+            - !target/release/exa_**

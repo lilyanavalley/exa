@@ -7,6 +7,9 @@ on:
       os:
         type: string
         required: true
+    # secrets:
+    #   personal_access_token:
+    #     required: true
 
 env:
   CARGO_TERM_COLOR: always
