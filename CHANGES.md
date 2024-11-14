@@ -26,5 +26,9 @@ This is the inception history of the project. Pretty bare-bones around here...
     - [.github/workflows/test.yaml](./.github/workflows/test.yaml) for testing game on push or P.R.
     - [.github/workflows/scheduled-build.yaml](./.github/workflows/scheduled-build.yaml) for scheduled[^1] builds.
 
+- Added GPL-3 license:
+    - [OSS license file](./COPYING.md)
+    - [GPL-3 logo](./data/ui/gplv3-with-text-136x68.png)
+    
 
 [^1]: Builds every Monday, 23:00 EST (11:00 PM).
