@@ -6,6 +6,22 @@ authors = []
 version = "0.1.0"
 edition = "2021"
 
+[package.metadata.packager]
+before-packaging-command = "cargo build --release"
+product-name = "exa"
+description = "Experiment A"
+long-description = "Experiment A."
+authors = ["Lily Valley"]
+publisher = "Lily Valley"
+copyright = "Lily Valley, 2024 under GPL-3-or-later"
+identifier = "lav.exa"
+# icons = ["data/images/checkerboard.png"]
+formats = [
+    "dmg",
+    "wix",
+    "deb"
+]
+
 [dependencies]
 fyrox = {workspace = true}
 firedbg-lib = "0.1.2"

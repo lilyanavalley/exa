@@ -17,40 +17,38 @@ env:
 
 jobs:
 
-  build_ubuntu:
-    runs-on: ubuntu-latest
-
+  build_matrix:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
-    - run: rustup toolchain install stable --profile minimal
-    - name: Install platform deps
-      run: sudo apt install -y pkg-config libasound2-dev 
-    - uses: Swatinem/rust-cache@v2 # Cache build deps for faster building later.
-    - name: Linux Build
-      run: cargo build --verbose
-    - name: Run Linux tests
-      run: cargo test --verbose
-
-  build_windows:
-    runs-on: windows-latest
-
-    steps:
-    - uses: actions/checkout@v4
-    - run: rustup toolchain install stable --profile minimal
-    - uses: Swatinem/rust-cache@v2 # Cache build deps for faster building later.
-    - name: Windows Build
-      run: cargo build --verbose
-    - name: Run Windows tests
-      run: cargo test --verbose
-
-  build_macos:
-    runs-on: macos-latest
-
-    steps:
-    - uses: actions/checkout@v4
-    - run: rustup toolchain install stable --profile minimal
-    - uses: Swatinem/rust-cache@v2 # Cache build deps for faster building later.
-    - name: MacOS Build
-      run: cargo build --verbose
-    - name: Run MacOS tests
-      run: cargo test --verbose
+      - uses: actions/checkout@v4
+      - run: rustup toolchain install stable --profile minimal
+      # Ubuntu requires additional dependencies for build.
+      # See: https://fyrox-book.github.io/beginning/scripting.html#platform-specific-dependencies
+      - name: Install build dependencies
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt install -y pkg-config libasound2-dev 
+          fi 
+        shell: bash
+      - name: Build release
+        run: cargo build --release --verbose
+      - name: Run tests
+        run: cargo test --verbose --workspace
+      - uses: ./.github/workflows/packager.yaml
+        with:
+          os: ${{ matrix.os }}
+      - name: Upload installable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: exa-installer-${{ matrix.os }}
+          path: target/release/exa_**.[app, deb, dmg, msi, AppImage]
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: exa-${{ matrix.os }}
+          path: |
+            - **
+            - !target/release/exa_**

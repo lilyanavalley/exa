@@ -1,0 +1,24 @@
+
+name: Packager
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        type: string
+        required: true
+    # secrets:
+    #   personal_access_token:
+    #     required: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  package:
+    runs-on: ${{ inputs.os }}
+    steps:
+    - name: Install Packager Utility
+      run: cargo install cargo-packager
+    - name: Package for ${{ inputs.os }}
+      run: cargo packager --release
