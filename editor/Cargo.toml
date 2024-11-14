@@ -3,6 +3,8 @@
 name = "editor"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/lilyanavalley/exa"
+license = "GPL-3.0-or-later"
 
 [dependencies]
 fyrox = {workspace = true}
