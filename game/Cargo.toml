@@ -18,6 +18,15 @@ tracy-client-sys    = { version = "0.22", optional = true }
 fluent-bundle       = "0.15.3"  # Localization and translations layer.
 strum               = "0.26.3"  # Property Editor enum support.
 strum_macros        = "0.26.3"  # Property Editor enum support.
+ron                 = "0.8.1"   # Rusty Object Notation, (de)serialization in conjunction with Serde.
+
+[dependencies.gilrs]
+version             = "0.11.0"  # SDL-capable controller input library.
+features = ["serde-serialize"]
+
+[dependencies.serde]
+version             = "1.0.210"
+features = ["derive"]
 
 [features]
 tracing = []

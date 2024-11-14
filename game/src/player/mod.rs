@@ -11,7 +11,7 @@ use fyrox::{
         type_traits::prelude::*,
         variable::InheritableVariable,
         visitor::prelude::*
-    }, engine, event::*, gui::window, keyboard::{ KeyCode, PhysicalKey }, scene::{ self, camera::CameraBuilder, node::Node, Scene }, script::{ ScriptContext, ScriptTrait }
+    }, engine, event::*, gui::window, keyboard::{ KeyCode, PhysicalKey }, scene::{ self, camera::CameraBuilder, node::Node, Scene }, script::{ ScriptContext, ScriptMessage, ScriptTrait }
 };
 // use strum_macros::*;
 use tracing::{ trace, info, warn, error, instrument };
