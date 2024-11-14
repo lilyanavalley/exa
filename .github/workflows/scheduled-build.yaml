@@ -37,3 +37,6 @@ jobs:
         run: cargo build --release --verbose
       - name: Run tests
         run: cargo test --verbose --workspace
+      - uses: ./.github/workflows/packager.yaml
+        with:
+          os: ${{ matrix.os }}
