@@ -1,5 +1,5 @@
 //! Executor with your game connected to it as a plugin.
-// use clap::Parser;
+use clap::Parser;
 use fyrox::engine::executor::Executor;
 use game:: { Game } ;
 // use firedbg_lib::fire;
