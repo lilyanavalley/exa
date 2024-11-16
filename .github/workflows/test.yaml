@@ -1,25 +1,18 @@
 
-name: Push/Pull Testing
+name: Test
 
 on:
-  push:
-    branches:
-      - "live"
-      - "v/*.*"
-      - "ghactions"
-  pull_request:
-    branches: [ "live" ]
+  workflow_call:
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test_ubuntu:
+  test:
 
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
     - name: Install build deps
       run: sudo apt install -y pkg-config libasound2-dev # ALSA required to build.
     - run: rustup toolchain install stable --profile minimal

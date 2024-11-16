@@ -11,20 +11,31 @@ on:
 
     #? Runs every week on Monday.
     - cron: '0 23 * * 1'
+  
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
 
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/workflows/test.yaml
+
   build_matrix:
+    needs: testing
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
+
       - uses: actions/checkout@v4
+
       - run: rustup toolchain install stable --profile minimal
+
       # Ubuntu requires additional dependencies for build.
       # See: https://fyrox-book.github.io/beginning/scripting.html#platform-specific-dependencies
       - name: Install build dependencies
@@ -33,22 +44,53 @@ jobs:
             sudo apt install -y pkg-config libasound2-dev 
           fi 
         shell: bash
+
+      # Cache build deps for faster building later.
+      - uses: Swatinem/rust-cache@v2
+
+      # Compile code
       - name: Build release
         run: cargo build --release --verbose
-      - name: Run tests
-        run: cargo test --verbose --workspace
+
+      # Create installation package for matrix OS.
       - uses: ./.github/workflows/packager.yaml
         with:
           os: ${{ matrix.os }}
-      - name: Upload installable package
-        uses: actions/upload-artifact@v4
+
+      # Makes webtorrents of release
+      - name: Make torrent
+        uses: devopsx/action-torrent@v1
         with:
-          name: exa-installer-${{ matrix.os }}
-          path: target/release/exa_**.[app, deb, dmg, msi, AppImage]
-      - name: Upload build
-        uses: actions/upload-artifact@v4
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            - .git/
+            - .vscode/
+            - data/
+            - editor/
+            - executor/
+            - executor-*/
+            - game/
+            - target/**/*(executor*|exa_*)
+            - **/Cargo.*
+            - **/*.md
+            - .gitignore
+      
+      # Create release
+      - name: Make release
+        uses: softprops/action-gh-release@v2
         with:
-          name: exa-${{ matrix.os }}
-          path: |
-            - **
-            - !target/release/exa_**
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ github.ref_name }}
+          files: |
+            - .git/
+            - .vscode/
+            - data/
+            - editor/
+            - executor/
+            - executor-*/
+            - game/
+            - target/**/*(executor*|exa_*)
+            - torrents/
+            - **/Cargo.*
+            - **/*.md
+            - .gitignore

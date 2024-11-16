@@ -11,11 +11,25 @@ before-packaging-command = "cargo build --release"
 product-name = "exa"
 description = "Experiment A"
 long-description = "Experiment A."
+category = "Game"
 authors = ["Lily Valley"]
 publisher = "Lily Valley"
 copyright = "Lily Valley, 2024 under GPL-3-or-later"
 identifier = "lav.exa"
 # icons = ["data/images/checkerboard.png"]
+resources = [
+    "../data/",
+    "../editor/",
+    "../executor/",
+    "../executor-wasm/",
+    "../executor-android/",
+    "../game/",
+    "../*.md",
+    "../Cargo.*",
+    "../.vscode/",
+    "../.git/",
+    "../.gitignore"
+]
 formats = [
     "dmg",
     "wix",
