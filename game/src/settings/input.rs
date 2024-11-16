@@ -9,7 +9,7 @@ use std::{
 };
 use serde:: { Serialize, Deserialize };
 use fyrox::{
-    core:: { pool::Handle, reflect::prelude::*, visitor::prelude::* }, event::*, gui::{ screen::Screen, widget::WidgetBuilder, UiNode, UserInterface }, keyboard::*, plugin::PluginContext
+    core:: { pool::Handle, reflect::prelude::*, visitor::prelude::* }, event::*, gui::{ screen::Screen, widget::WidgetBuilder, wrap_panel::Line, UiNode, UserInterface }, keyboard::*, plugin::PluginContext
 };
 // use super::SettingsComponent;
 
@@ -54,19 +54,19 @@ impl InputSettingsComponent {
         let mut map = HashMap::new();
         map.insert(
             BindingSources::Desktop(desktop_input::DesktopInputSources::Key(PhysicalKey::Code(KeyCode::KeyW))),
-            BindingActions::linear(true, false, false, false)
+            BindingActions::linear(LinearDirectionSetting::forward())
         );
         map.insert(
             BindingSources::Desktop(desktop_input::DesktopInputSources::Key(PhysicalKey::Code(KeyCode::KeyS))),
-            BindingActions::linear(false, true, false, false)
+            BindingActions::linear(LinearDirectionSetting::backward())
         );
         map.insert(
             BindingSources::Desktop(desktop_input::DesktopInputSources::Key(PhysicalKey::Code(KeyCode::KeyA))),
-            BindingActions::linear(false, false, true, false)
+            BindingActions::linear(LinearDirectionSetting::left())
         );
         map.insert(
             BindingSources::Desktop(desktop_input::DesktopInputSources::Key(PhysicalKey::Code(KeyCode::KeyD))),
-            BindingActions::linear(false, false, false, true)
+            BindingActions::linear(LinearDirectionSetting::right())
         );
         map.insert(
             BindingSources::Desktop(desktop_input::DesktopInputSources::Key(PhysicalKey::Code(KeyCode::KeyE))),
@@ -156,7 +156,7 @@ pub enum BindingActions {
     MovementNonlinear { x: f32, y: f32, z: f32 },
 
     /// Linear movement on key/button press.
-    MovementLinear { forward: bool, backward: bool, left: bool, right: bool },
+    MovementLinear (LinearDirectionSetting),
 
     /// Interact button.
     Interact
@@ -169,12 +169,40 @@ impl BindingActions {
         BindingActions::MovementNonlinear { x, y, z }
     }
 
-    pub fn linear(forward: bool, backward: bool, left: bool, right: bool) -> Self {
-        BindingActions::MovementLinear { forward, left, right, backward }
+    pub fn linear(direction: LinearDirectionSetting) -> Self {
+        BindingActions::MovementLinear (direction)
     }
 
     pub fn interact() -> Self {
         BindingActions::Interact
+    }
+
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum LinearDirectionSetting {
+    Forward,
+    Backward,
+    Left,
+    Right
+}
+
+impl LinearDirectionSetting {
+
+    pub fn forward() -> Self {
+        Self::Forward
+    }
+
+    pub fn backward() -> Self {
+        Self::Backward
+    }
+
+    pub fn left() -> Self {
+        Self::Left
+    }
+
+    pub fn right() -> Self {
+        Self::Right
     }
 
 }
