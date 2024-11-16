@@ -61,18 +61,19 @@ jobs:
         uses: devopsx/action-torrent@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          onefile: true
           files: |
-            - .git/
-            - .vscode/
-            - data/
-            - editor/
-            - executor/
-            - executor-*/
-            - game/
-            - target/**/*(executor*|exa_*)
-            - **/Cargo.*
-            - **/*.md
-            - .gitignore
+            .git/
+            .vscode/
+            data/
+            editor/
+            executor/
+            executor-*/
+            game/
+            target/**/*(executor*|exa_*)
+            **/Cargo.*
+            **/*.md
+            .gitignore
       
       # Create release
       - name: Make release
@@ -80,16 +81,17 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: ${{ github.ref_name }}
+          fail_on_unmatched_files: false
           files: |
-            - .git/
-            - .vscode/
-            - data/
-            - editor/
-            - executor/
-            - executor-*/
-            - game/
-            - target/**/*(executor*|exa_*)
-            - torrents/
-            - **/Cargo.*
-            - **/*.md
-            - .gitignore
+            .git/
+            .vscode/
+            data/
+            editor/
+            executor/
+            executor-*/
+            game/
+            target/**/*(executor*|exa_*)
+            torrents/
+            **/Cargo.*
+            **/*.md
+            .gitignore
