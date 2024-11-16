@@ -11,9 +11,6 @@ on:
 
     #? Runs every week on Monday.
     - cron: '0 23 * * 1'
-  
-  workflow_call:
-
 
 env:
   CARGO_TERM_COLOR: always
