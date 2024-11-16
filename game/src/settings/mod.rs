@@ -1,11 +1,8 @@
 
 use crate::GAME_VERSION;
-use core::{
-    any::Any
-};
+use core::any::Any;
 use std::{ 
     default::Default,
-    fmt::{ Display },
     collections::HashMap,
     hash::Hash,
     { io, io::{ Write, Read }, fs }
@@ -23,6 +20,7 @@ use fyrox:: {
 };
 use tracing:: { trace, trace_span, info, info_span, warn, warn_span, error, error_span };
 use serde::{Deserialize, Serialize};
+
 mod input;
 
 const SETTINGS_SAVENAME: &'static str = "gamesettings.ron";
@@ -69,14 +67,13 @@ mod tests {
     #[test]
     fn test_settings_saveload_sanity() {
 
-        let settings_saved = Settings::default();
-        settings_saved.save();
+        let settings_saved = Settings::default()
+            .save()
+            .unwrap();
 
         let settings_loaded = Settings::default()
             .load(None)
             .unwrap();
-
-        // assert_eq!(settings_saved, settings_loaded);
 
     }
 
