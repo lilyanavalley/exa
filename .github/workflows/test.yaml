@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # - uses: actions/checkout@v4
       - name: Install build deps
         run: sudo apt install -y pkg-config libasound2-dev # ALSA required to build.
       - run: rustup toolchain install stable --profile minimal

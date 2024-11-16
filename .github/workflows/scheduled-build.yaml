@@ -22,6 +22,7 @@ jobs:
   testing:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/workflows/test.yaml
 
   build_matrix:
