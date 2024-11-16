@@ -13,10 +13,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Install build deps
-      run: sudo apt install -y pkg-config libasound2-dev # ALSA required to build.
-    - run: rustup toolchain install stable --profile minimal
-    - uses: Swatinem/rust-cache@v2 # Cache build deps for faster building later.
-    - name: Run tests
-      run: cargo test --verbose
+      - uses: actions/checkout@v4
+      - name: Install build deps
+        run: sudo apt install -y pkg-config libasound2-dev # ALSA required to build.
+      - run: rustup toolchain install stable --profile minimal
+      - uses: Swatinem/rust-cache@v2 # Cache build deps for faster building later.
+      - name: Run tests
+        run: cargo test --verbose
 
