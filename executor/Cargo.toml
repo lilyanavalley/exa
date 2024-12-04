@@ -13,6 +13,38 @@ firedbg-lib = "0.1.2"
 game = { path = "../game" }
 tracing = "0.1.40"
 clap = "4.5.4"
+cargo-packager = "0.11.2"
+cargo-packager-resource-resolver = { version = "0.1.2", features = ["auto-detect-format"] }
+
+[package.metadata.packager]
+before-each-package-command = "cargo build --release"
+product-name = "exa"
+description = "Experiment A"
+long-description = "Experiment A."
+category = "Game"
+authors = ["Lily Valley"]
+publisher = "Lily Valley"
+copyright = "Lily Valley, 2024 under GPL-3-or-later"
+identifier = "lav.exa"
+# icons = ["data/images/checkerboard.png"]
+resources = [
+    "../data/",
+    "../editor/",
+    "../executor/",
+    "../executor-wasm/",
+    "../executor-android/",
+    "../game/",
+    "../*.md",
+    "../Cargo.*",
+    "../.vscode/",
+    "../.git/",
+    "../.gitignore"
+]
+formats = [
+    "dmg",
+    "wix",
+    "deb"
+]
 
 [dependencies.tracing-subscriber]
 version = "0.3.18"
