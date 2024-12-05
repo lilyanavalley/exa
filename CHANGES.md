@@ -6,7 +6,7 @@
 
 Introduces Fyrox game engine, tracing capabilities, editor & executor packages.
 
-### 0.1.0 (Init)
+### v0.1.0 (Init)
 
 This is the inception history of the project. Pretty bare-bones around here...
 
@@ -40,12 +40,12 @@ This is the inception history of the project. Pretty bare-bones around here...
 - Added GPL-3 license:
     - [OSS license file](./COPYING.md)
     - [GPL-3 logo](./data/ui/gplv3-with-text-136x68.png)
+
 [^1]: Builds every Monday, 23:00 EST (11:00 PM).
 
 
 ## v0.2
 
-**Dialog Component**
 Creation of interactive *Dialog* menu system. Intention to write a resuable interface for speaking to NPCs. Additional
 features surrounding the dialog menu, including rich/markdown text may be implemented here or in a near-future version.
 
