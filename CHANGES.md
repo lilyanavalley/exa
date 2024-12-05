@@ -49,6 +49,23 @@ This is the inception history of the project. Pretty bare-bones around here...
 Creation of interactive *Dialog* menu system. Intention to write a resuable interface for speaking to NPCs. Additional
 features surrounding the dialog menu, including rich/markdown text may be implemented here or in a near-future version.
 
-### 0.2.0
-
+### v0.2.0 (dialog)
 todo
+
+
+## v0.3
+
+Implementation of packaging tools for authoring installable game packages (like `.msi`, `.appimage`, `.dmg`...) This should hopefully make it easier to install a copy of **EXA** on the player's device and help resolve resources during runtime.
+
+### v0.3.0 (packager)
+
+- Introduces dependencies in `executor`:
+    - [cargo-packager](https://crates.io/crates/cargo-packager) v0.11.2
+    - [cargo-packager-resource-resolver](https://crates.io/crates/cargo-packager-resource-resolver) v0.1.2
+
+- Implements functionality in `game`:
+    - Receive a filesystem path from the running `executor`, pointing to the game's data directory.
+    - Use a fallback technique to resolve the game's data directory if the game was not packaged using `cargo-packager`.
+
+- Implements functionality in `executor`:
+    - Sends a filesystem path to `game` if the game has been packaged and installed.
