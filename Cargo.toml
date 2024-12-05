@@ -4,6 +4,15 @@ members = ["editor", "executor", "game"]
 # members = ["editor", "executor", "executor-wasm", "executor-android", "game"]
 resolver = "2"
 
+[workspace.package]
+edition = "2021"
+version = "0.3.0"
+authors = ["Lily Ana Valley <mslilyvalley@icloud.com>"]
+description = "An experimental videogame."
+repository = "https://github.com/lilyanavalley/exa"
+license = "GPL-3.0"
+readme = "README.md"
+
 [workspace.dependencies.fyrox]
 version = "0.34.0"
 [workspace.dependencies.fyroxed_base]

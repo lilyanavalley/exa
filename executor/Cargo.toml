@@ -1,11 +1,12 @@
 
 [package]
 name = "executor"
-description = "Experimental Game 'A'"
-version = "0.1.0"
-edition = "2021"
-repository = "https://github.com/lilyanavalley/exa"
-license = "GPL-3.0-or-later"
+edition = { workspace = true }
+version = { workspace = true }
+authors = { workspace = true }
+description = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
 
 [dependencies]
 fyrox = {workspace = true}
@@ -20,13 +21,18 @@ cargo-packager-resource-resolver = { version = "0.1.2", features = ["auto-detect
 before-each-package-command = "cargo build --release"
 product-name = "exa"
 description = "Experiment A"
-long-description = "Experiment A."
+long-description = "Lily's Experiment A prototype videogame."
 category = "Game"
 authors = ["Lily Valley"]
 publisher = "Lily Valley"
 copyright = "Lily Valley, 2024 under GPL-3-or-later"
 identifier = "lav.exa"
-# icons = ["data/images/checkerboard.png"]
+icons = [
+    "../data/ui/exa-32x.png",
+    "../data/ui/exa-64x.png",
+    "../data/ui/exa-128x.png",
+    "../data/ui/exa-256x.png",
+]
 resources = [
     "../data/",
     "../editor/",
