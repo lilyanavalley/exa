@@ -69,3 +69,10 @@ Implementation of packaging tools for authoring installable game packages (like 
 
 - Implements functionality in `executor`:
     - Sends a filesystem path to `game` if the game has been packaged and installed.
+
+- Added assets:
+    - [exa-32x.png](./data/ui/exa-32x.png) placeholder game icon.
+    - [exa-64x.png](./data/ui/exa-64x.png) placeholder game icon.
+    - [exa-128x.png](./data/ui/exa-128x.png) placeholder game icon.
+    - [exa-256x.png](./data/ui/exa-256x.png) placeholder game icon.
+    - [exa.pxo](./data/ui/exa.pxo) placeholder game icon source file.
