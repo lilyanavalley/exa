@@ -31,7 +31,10 @@ use fyrox::{
         visitor::prelude::*
     }, event::{DeviceEvent, Event}, gui::{ message:: { MessageDirection, UiMessage }, text::{Text, TextMessage}, UiNode }, keyboard:: { PhysicalKey, KeyCode }, plugin::{ Plugin, PluginContext, PluginRegistrationContext }, scene::Scene
 };
-use std:: { future::{Future, IntoFuture}, path::Path };
+use std:: { 
+    env::current_exe,
+    io,
+    path::{ Path, PathBuf } };
 use tracing:: { trace, trace_span, debug, debug_span, info, info_span, warn, warn_span, error, error_span, instrument };
 use crate::utilities::*;
 
@@ -64,6 +67,9 @@ pub struct Game {
     #[reflect(hidden)]
     gamepads:       Option<gilrs::Gilrs>,
 
+    /// Path of game data directory.
+    app_data_dir:   Option<PathBuf>,
+
 }
 
 impl Game {
@@ -83,6 +89,62 @@ impl Game {
     //         settings:   settings::Settings::default()
     //     }
     // }
+
+    /// Set the application's `data/` directory.
+    /// 
+    /// The value is specific to the platform with which this application runs on, but typically the path points to a
+    /// `Resource` directory containing the game source and `data/` directory.
+    /// 
+    /// See for more information:
+    /// https://docs.rs/cargo-packager-resource-resolver/latest/cargo_packager_resource_resolver/
+    pub fn with_app_data_dir(&mut self, mut path: PathBuf) {
+        path.push("data/");
+        self.app_data_dir = Some(path);
+    }
+    
+    /// Points to the application's `data/` directory, or its relative folder as a fallback for portable installations.
+    pub fn app_data_dir(&self) -> PathBuf {
+        match &self.app_data_dir {
+            Some(path)  => path.clone(),
+            None        => Game::app_data_dir_fallback().unwrap()   // TODO: Replace to gracefully report missing dir!
+        }
+    }
+
+    fn app_data_dir_fallback() -> io::Result<PathBuf> {
+
+        // ! This call to `std::env::current_exe()` could be potentially be misused or exploited.
+        // ! See this note for details: https://doc.rust-lang.org/std/env/fn.current_exe.html#security
+        // * If you witness this call presenting problematic behavior, please open an issue:
+        // https://github.com/lilyanavalley/exa/issues/new/choose
+        let current_exe_dir = current_exe()?;
+        let current_exe_dir = current_exe_dir.canonicalize()?;
+
+        // Step through each directory or its decendants until we either:
+        //     - find an expected data/resource directory, or
+        //     - exhaust locations where we'd expect to find the data directory.
+        info!("Search for data directory in ancestors of path:\n{:?}", current_exe_dir);
+        for each_ancestor in current_exe_dir.ancestors() {
+            // Check if path is a directory.
+            if each_ancestor.is_dir() {
+                for each_path in each_ancestor.read_dir()? {
+                    // Search dir for decendant dir named `data/` or `Resources/data`.
+                    let expected_match = each_path?.path();
+                    if 
+                        expected_match.ends_with("data/")
+                        ||
+                        expected_match.ends_with("Resources/data")
+                    {
+                        // A match is immediately returned.
+                        info!("Found data directory: {:?}", expected_match);
+                        return Ok(expected_match)
+                    }
+                }
+            }
+        }
+
+        Err(io::Error::new(io::ErrorKind::NotFound, "Data directory could not be found."))
+
+    }
 
     fn save(&self, context: &mut PluginContext<'_, '_>) -> VisitResult {
 
@@ -364,6 +426,50 @@ impl Plugin for Game {
         #[allow(unused_variables)] context: &mut PluginContext,
     ) {
         error!("Scene could not be loaded: {path:?} ({error:?})");
+    }
+
+}
+
+#[cfg(test)]
+mod tests {
+
+    use std:: { fs, path::PathBuf };
+    use super::Game;
+
+    /// Test the sanity/safety of `self.app_data_dir`.
+    #[test]
+    fn test_app_data_dir_sanity() {
+
+        let mut game = Game::default();
+        assert_eq!(game.app_data_dir, None);    // Should start off with `None`.
+        
+        // Set data dir to some arbitrary dir...
+        let path = PathBuf::from("mydir/");
+        game.with_app_data_dir(path.clone());
+        // The function above appends the `data/` dir to the package contents.
+
+        // Test that the path meets expectation.
+        let mut path_expected = path;
+        path_expected.push("data/");
+        assert_eq!(game.app_data_dir, Some(path_expected.clone()));
+
+        // Test the sister function to retrieve the data directory.
+        assert_eq!(game.app_data_dir(), path_expected);
+
+        // Set to None afterwards, to replicate a deleted/changed directory.
+        game.app_data_dir = None;
+        assert!(game.app_data_dir.is_none());
+
+        // Test `.app_data_dir()` to provide a relative dir that actually points to data.
+        let path_test = game.app_data_dir();
+        assert_eq!(
+            path_test.exists(), // Path must exist
+            path_test.is_dir()  // Path must be a dir
+        );
+
+        // TODO: continue to write to completion for both functions:
+        // TODO: `.with_app_data_dir(...)` and `.app_data_dir(...)`
+
     }
 
 }
