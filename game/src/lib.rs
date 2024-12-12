@@ -65,6 +65,14 @@ pub struct Game {
     #[reflect(hidden)]
     gamepads:       Option<gilrs::Gilrs>,
 
+    #[visit(skip)]
+    #[reflect(hidden)]
+    localization:   components::fluent::FluentCache,
+
+    #[visit(skip)]
+    #[reflect(hidden)]
+    dialog:         components::dialog::Dialog,
+
 }
 
 impl Game {
