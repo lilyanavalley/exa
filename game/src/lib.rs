@@ -19,6 +19,7 @@ pub mod settings;   /// Player/game settings.
 pub mod ui;         /// Game User Interface.
 // pub mod eventline;  /// Events processor subroutine.
 mod utilities;      /// Game utilities.
+mod components;     /// Engine components.
 
 #[cfg(feature = "tracy")]
 mod tracy;          /// Tracy utilities and subroutines.
