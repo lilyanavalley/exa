@@ -1,0 +1,31 @@
+
+SerializedConversationCollection(
+    // Collection of conversations.
+    convos: [
+
+        SerializedConversation(
+            // Turns in a conversation between participants.
+            turns: [
+                
+                ( // Test of the dialog system; game explains controls as an example...
+                    messages: [
+                        "d-test", // Fluent message key(s) are placed here...
+                    ],
+                    speaker:    "game"  // The speaker is selected for this turn by their key.
+                    skippable:  true,   // Choose if this turn is skippable.
+                    pausable:   true,   // Choose if this turn is pausable.
+                ),
+
+                (
+                    messages: [
+                        "d-test-response",  // Fluent message key(s) are placed here...
+                    ],
+                    speaker:    "player"    // The speaker is selected for this turn by their key.
+                    // other fields are omitted to demonstrate use of Option<T>
+                ),
+
+            ]
+        ),
+
+    ]
+)

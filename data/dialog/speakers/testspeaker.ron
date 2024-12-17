@@ -1,0 +1,41 @@
+/* 
+    TABLE OF CONTENTS:
+        speakers            -- `SerializedDialogSpeakerCollection` containing `SerializedDialogSpeaker`
+            color           -- RGBA color format personalized for a speaker.
+            key             -- An internal 'key' with which to refer to this speaker by.
+            name            -- FTL message 'key' pointing to a character's name. See the `data/languages` folder.
+            kind            -- One of `Npc`, `Player`, `Game` or `Unidentified`. Selects dialog box visuals.
+            speakrate       -- Optional! Specifies default speech rate in Letters Per Second.
+            speakrate_pause -- Optional! Specifies default pause time in Seconds after occurences of `...`
+*/
+SerializedDialogSpeakerCollection(
+    speakers: [
+        // Game speaker.
+        SerializedDialogSpeaker(
+            color:  {
+                r:  242,
+                g:  101,
+                b:  7,
+                a:  255
+            },
+            key:                "game"
+            name:               "char-game", // FTL message key for the speaker's name.
+            kind:               Game // The variant type in `SpeakerKind`
+            speakrate:          0.4 // How fast should this speaker talk?
+            speakrate_pause:    0.8 // How fast should delimited pauses (...) be?
+        ),
+        // Player speaker.
+        SerializedDialogSpeaker(
+            color:  {
+                r:  7,
+                g:  175,
+                b:  242,
+                a:  255
+            },
+            key:    "player"
+            name:   "char-player", // FTL message key for the speaker's name.
+            kind:   Player // The variant type in `SpeakerKind`
+            // The other fields are optional and omitted.
+        )
+    ]
+)
