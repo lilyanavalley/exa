@@ -16,6 +16,7 @@ tracy-client-sys    = { version = "0.22", optional = true }
 # ring                = "0.17.8"  # Cryptographic operations.
 # chrono              = "0.4.38"  # Time-keeping.
 fluent-bundle       = "0.15.3"  # Localization and translations layer.
+fluent-syntax       = "*"
 unic-langid-macros  = "0.9.5"   # Used with fluent-bundle, exposes langid macros.
 unic-langid-impl    = "0.9.5"   # Used with fluent-bundle, exposes `LanguageIdentifier`.
 strum               = "0.26.3"  # Property Editor enum support.
