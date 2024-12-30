@@ -1,13 +1,30 @@
 
+/*
+    TABLE OF CONTENTS:
+        convos  -- A collection of conversations.
+            key_internal    -- An internal key for the Dialog system to refer to a specific conversation/choice.
+            speaker         -- Internal key for a speaker, found in the `data/dialog/speakers` directory.
+            skippable       -- Allows a conversation turn to be skipped.
+            pausable        -- Allows a conversation turn to be paused.
+            key_ftl         -- A key to a Fluent message.
+            key_ftl_outcome -- A key to a Fluent message which specifies, in one or two words, a choice outcome.
+            selected        -- Upon choice selection, follows a particular procedure. See game/src/components/dialog/mod.rs
+*/
+
 SerializedConversationCollection(
     // Collection of conversations.
     convos: [
 
+        // Represents a sample conversation between `game` and `player`.
         SerializedConversation(
+
+            // May be dispatched into by other conversations.
+            key_internal:   "example-convo",
+
             // Turns in a conversation between participants.
             turns: [
                 
-                ( // Test of the dialog system; game explains controls as an example...
+                Turn( // Test of the dialog system; game explains controls as an example...
                     messages: [
                         "d-test", // Fluent message key(s) are placed here...
                     ],
@@ -16,7 +33,7 @@ SerializedConversationCollection(
                     pausable:   true,   // Choose if this turn is pausable.
                 ),
 
-                (
+                Turn(
                     messages: [
                         "d-test-response",  // Fluent message key(s) are placed here...
                     ],
@@ -24,8 +41,45 @@ SerializedConversationCollection(
                     // other fields are omitted to demonstrate use of Option<T>
                 ),
 
+                Choice( // Represents a choice with two options.
+                    options: [
+                        ChoiceOption(
+                            key_ftl:            "d-test-choice-a",
+                            // key_ftl_outcome:    "d-test-choice-a-outcometext", // * Optional
+                            key_internal:       "choice-a",
+                            selected:           Dispatch("example-dispatched") // dispatches to another conversation.
+                        ),
+                        ChoiceOption(
+                            key_ftl:            "d-test-choice-b",
+                            key_ftl_outcome:    "d-test-choice-b-outcometext",
+                            key_internal:       "choice-b",
+                            selected:           Exit // exits the conversation.
+                        )
+                        ChoiceOption(
+                            key_ftl:            "d-test-choice-c",
+                            key_ftl_outcome:    "d-test-choice-c-outcometext",
+                            key_internal:       "choice-c",
+                            selected:           Continue // continues to the next turn.
+                        )
+                    ]
+                ),
+
+                // Choice 'C' continues to this turn, which simply repeats the Player's last dialog...
+                // But, you could continue a conversation instead of breaking out of it using `Exit` or `Dispatch`.
+                Turn(
+                    messages: [
+                        "d-test-response",
+                        speaker:        "player",
+                    ]
+                )
+
             ]
         ),
+
+        SerializedConversation(
+            key_internal:   "example-dispatched",
+            turns: []
+        )
 
     ]
 )

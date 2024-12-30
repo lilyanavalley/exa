@@ -22,7 +22,7 @@ SerializedDialogSpeakerCollection(
             name:               "char-game", // FTL message key for the speaker's name.
             kind:               Game // The variant type in `SpeakerKind`
             speakrate:          0.4 // How fast should this speaker talk?
-            speakrate_pause:    0.8 // How fast should delimited pauses (...) be?
+            speakrate_pause:    0.8 // How fast should delimited pauses `...` be?
         ),
         // Player speaker.
         SerializedDialogSpeaker(
