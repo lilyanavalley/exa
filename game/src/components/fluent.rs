@@ -43,6 +43,7 @@ impl FluentCache {
 
     }
 
+    // TODO: Document this whole thing.
     fn retrieve_file(mut prefix: PathBuf, lang: LanguagesSupported) -> io::Result<Vec<u8>> {
         prefix.push("languages/");
         let ftl_path = lang.file(Some(&prefix));
@@ -52,10 +53,30 @@ impl FluentCache {
         Ok(ftl_resource)
     }
 
+    // TODO: Document this whole thing.
+    pub fn bundle(&self) -> &FluentBundle<FluentResource> {
+        &self.bundle
+    }
+
+    // TODO: Document this whole thing.
+    pub fn bundle_mut(&mut self) -> &mut FluentBundle<FluentResource> {
+        &mut self.bundle
+    }
+
+    /// Stringify Fluent errors and collect them.
+    pub fn errors(&self) -> Vec<String> {
+        let mut vec = Vec::new();
+        for each_error in &self.errors {
+            vec.push(format!("Fluent error: {}", each_error));
+        };
+        vec
+    }
+
 }
 
 impl std::fmt::Debug for FluentCache {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // TODO: Document this whole thing.
         f.debug_struct("FluentCache")
             .field("bundle", &self.bundle.locales)
             .field("errors", &self.errors)
@@ -135,7 +156,6 @@ impl ToString for LanguagesSupported {
 mod tests {
 
     use crate::components::fluent;
-
     use super::*;
 
 
@@ -148,6 +168,31 @@ mod tests {
     //     assert_eq!(fluentcache.bundle.has_message("coremenu"), true); // TODO: Write this.
 
     // }
+
+    #[test]
+    fn test_fluentcache() {
+
+        // TODO: Document this whole thing.
+
+        let mut fluentcache = FluentCache::default();
+
+        assert_eq!(fluentcache.bundle().has_message("ggez"), false);
+        assert_eq!(fluentcache.bundle().get_message("ggez"), None);
+
+        let frfr= "fr fr!!";
+        let stringy = format!("ggez = {frfr}");
+        let resource = FluentResource::try_new(stringy).unwrap();
+        fluentcache.bundle_mut().add_resource(resource);
+
+        let ggez = fluentcache.bundle().get_message("ggez").unwrap().value().unwrap();
+
+        assert_eq!(fluentcache.bundle().has_message("ggez"), true);
+        assert_eq!(
+            fluentcache.bundle().format_pattern(ggez, None, &mut vec![]),
+            frfr
+        );
+
+    }
 
     #[test]
     fn test_fluentcache_debugimpl() {
