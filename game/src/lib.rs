@@ -33,7 +33,7 @@ use fyrox::{
     }, event::{DeviceEvent, Event}, gui::{ message:: { MessageDirection, UiMessage }, text::{Text, TextMessage}, UiNode }, keyboard:: { PhysicalKey, KeyCode }, plugin::{ Plugin, PluginContext, PluginRegistrationContext }, scene::Scene
 };
 use std:: { future::{Future, IntoFuture}, path::Path };
-use tracing:: { trace, trace_span, debug, debug_span, info, info_span, warn, warn_span, error, error_span, instrument };
+use tracing:: { trace, trace_span, debug, debug_span, info, info_span, warn, warn_span, error, error_span, instrument::Instrument, instrument };
 use crate::utilities::*;
 
 #[cfg(feature = "tracy")]
@@ -314,9 +314,19 @@ impl Plugin for Game {
 
         // ? Loads the development scene.
         // TODO: Remove or replace.
-        context
-            .async_scene_loader
-            .request(scene_path.unwrap_or("data/scene.rgs"));
+        context.async_scene_loader.request(scene_path.unwrap_or("data/scene.rgs"));
+
+        // ? Starts plugin task to fetch US English fluent file.
+        let trace_defaultftlfetch = trace_span!("FTL default fetch Future");
+        context.task_pool.spawn_plugin_task(
+            components::fluent::FluentCache::default_later()
+                .into_future()
+                .instrument(trace_defaultftlfetch),
+            | data, game: &mut Game, _context | {
+                game.localization.bundle = data.unwrap(); // TODO: Replace .unwrap for stability.
+                trace!("End FTL default fetch.");
+            }
+        );
 
         self.ui = ui::UiSubset::new(&mut context);
 

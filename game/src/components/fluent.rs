@@ -7,18 +7,21 @@
 // You should have received a copy of the GNU General Public License along with EXA. If not, see 
 // <https://www.gnu.org/licenses/>.
 
-use std:: { fs, io, io::Read, path:: { Path, PathBuf } };
-use fluent_bundle::*;
+use std:: { fs, io, io::Read, path:: { Path, PathBuf }, sync::{ Arc, Mutex, RwLock } };
+
+use fluent_bundle:: { FluentResource, FluentError, bundle::FluentBundle, concurrent::FluentBundle as ConcurrentFluentBundle };
+use tracing::trace_span;
 use unic_langid_impl;
 use unic_langid_macros::*;
+use intl_memoizer::concurrent::IntlLangMemoizer;
 
 
 /// Cached fluent files.
-#[derive(Default)]
+// #[derive(Default)]
 pub struct FluentCache {
 
-    bundle:         FluentBundle<FluentResource>,
-    errors:         Vec<FluentError>
+    pub bundle:     FluentBundle<FluentResource, IntlLangMemoizer>,
+    pub errors:     Vec<FluentError>
 
 }
 
@@ -29,30 +32,32 @@ impl FluentCache {
         Self::default()
     }
 
-    /// Add a language layer to the cache.
-    /// 
-    /// Any language previously added to the cache will be replaced by new additions silently.
-    /// 
-    /// Takes `lang`: `LanguagesSupported` to specify which language to add;
-    /// Takes `prefix`: `PathBuf` a path to the game's **data directory**.
-    pub fn add_language(&mut self, lang: LanguagesSupported, prefix: PathBuf) {
+    /// Pull the default language file and return a `Future` with data at a later time.
+    pub async fn default_later() -> Result<ConcurrentFluentBundle<FluentResource>, io::Error> {
         
-        let ftl_resource = Self::retrieve_file(prefix, lang)
-            .unwrap();
+        let ftl_resource = FluentCache::retrieve_file(
+            PathBuf::from("data/"),
+            LanguagesSupported::lang_en_us()
+        ).unwrap();
         
         // TODO: Replace .unwrap()
         let ftl_resource = String::from_utf8(ftl_resource).unwrap();
 
         // TODO: Replace .unwrap()
-        let ftl_resource = FluentResource::try_new(ftl_resource).unwrap();
+        let ftl_resource = fluent_bundle::FluentResource::try_new(ftl_resource).unwrap();
         
-        // TODO: Replace .unwrap()
-        self.bundle.add_resource(ftl_resource).unwrap();
+        let mut ftl_bundle = fluent_bundle::concurrent::FluentBundle::new_concurrent(
+            vec![unic_langid_macros::langid!("en-US")]
+        );
+        ftl_bundle.add_resource(ftl_resource).unwrap();
+
+        Ok(ftl_bundle)
 
     }
 
     // TODO: Document this whole thing.
-    fn retrieve_file(mut prefix: PathBuf, lang: LanguagesSupported) -> io::Result<Vec<u8>> {
+    /// Reads a fluent file based on provided path to data folder `prefix` and the language `lang`.
+    pub fn retrieve_file(mut prefix: PathBuf, lang: LanguagesSupported) -> io::Result<Vec<u8>> {
         prefix.push("languages/");
         let ftl_path = lang.file(Some(&prefix));
         let mut ftl_resource = Vec::new();
@@ -61,15 +66,15 @@ impl FluentCache {
         Ok(ftl_resource)
     }
 
-    // TODO: Document this whole thing.
-    pub fn bundle(&self) -> &FluentBundle<FluentResource> {
-        &self.bundle
-    }
+    // // TODO: Document this whole thing.
+    // pub fn bundle(&self) -> &Option<FluentBundle<FluentResource>> {
+    //     &self.bundle
+    // }
 
-    // TODO: Document this whole thing.
-    pub fn bundle_mut(&mut self) -> &mut FluentBundle<FluentResource> {
-        &mut self.bundle
-    }
+    // // TODO: Document this whole thing.
+    // pub fn bundle_mut(&mut self) -> &mut Option<FluentBundle<FluentResource>> {
+    //     &mut self.bundle
+    // }
 
     /// Stringify Fluent errors and collect them.
     pub fn errors(&self) -> Vec<String> {
@@ -86,14 +91,24 @@ impl std::fmt::Debug for FluentCache {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // TODO: Document this whole thing.
         f.debug_struct("FluentCache")
+            // TODO: Reintroduce this next line to debug it:
             .field("bundle", &self.bundle.locales)
             .field("errors", &self.errors)
         .finish()
     }
 }
 
+impl Default for FluentCache {
+    fn default() -> Self {
+        FluentCache {
+            bundle:     FluentBundle::new_concurrent(Vec::new()),
+            errors:     Vec::new()
+        }
+    }
+}
+
 // TODO: Document.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum LanguagesSupported {
 
     EnglishUS,
@@ -184,19 +199,19 @@ mod tests {
 
         let mut fluentcache = FluentCache::default();
 
-        assert_eq!(fluentcache.bundle().has_message("ggez"), false);
-        assert_eq!(fluentcache.bundle().get_message("ggez"), None);
+        assert_eq!(fluentcache.bundle.has_message("ggez"), false);
+        assert_eq!(fluentcache.bundle.get_message("ggez"), None);
 
         let frfr= "fr fr!!";
         let stringy = format!("ggez = {frfr}");
         let resource = FluentResource::try_new(stringy).unwrap();
-        fluentcache.bundle_mut().add_resource(resource);
+        fluentcache.bundle.add_resource(resource);
 
-        let ggez = fluentcache.bundle().get_message("ggez").unwrap().value().unwrap();
+        let ggez = fluentcache.bundle.get_message("ggez").unwrap().value().unwrap();
 
-        assert_eq!(fluentcache.bundle().has_message("ggez"), true);
+        assert_eq!(fluentcache.bundle.has_message("ggez"), true);
         assert_eq!(
-            fluentcache.bundle().format_pattern(ggez, None, &mut vec![]),
+            fluentcache.bundle.format_pattern(ggez, None, &mut vec![]),
             frfr
         );
 
@@ -209,7 +224,7 @@ mod tests {
 
         assert_eq!(
             format!("{:?}", fluentcache),
-            "FluentCache { bundle: [LanguageIdentifier { language: Language(None), script: None, region: None, variants: None }], errors: [] }"
+            "FluentCache { bundle: [], errors: [] }"
         );
         // TODO: Document.
 
