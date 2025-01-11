@@ -39,13 +39,13 @@ impl FluentCache {
             PathBuf::from("data/"),
             LanguagesSupported::lang_en_us()
         ).unwrap();
-        
+
         // TODO: Replace .unwrap()
         let ftl_resource = String::from_utf8(ftl_resource).unwrap();
 
         // TODO: Replace .unwrap()
         let ftl_resource = fluent_bundle::FluentResource::try_new(ftl_resource).unwrap();
-        
+
         let mut ftl_bundle = fluent_bundle::concurrent::FluentBundle::new_concurrent(
             vec![unic_langid_macros::langid!("en-US")]
         );
@@ -174,6 +174,18 @@ impl ToString for LanguagesSupported {
             Self::FrançiasFR    => "Françias (FR)".to_string()
         }
     }
+}
+
+// TOOD: Document.
+pub enum FluentMessage {
+
+    /// Add language to bundle cache.
+    AddLanguage(LanguagesSupported),
+    /// Invalidate bundle cache; resets to default.
+    CacheInvalidate,
+    /// Reload bundle cache to game preference.
+    CacheReload
+
 }
 
 mod tests {

@@ -20,6 +20,7 @@ pub mod ui;         /// Game User Interface.
 // pub mod eventline;  /// Events processor subroutine.
 mod utilities;      /// Game utilities.
 mod components;     /// Engine components.
+mod messenger;      /// Game messages.
 
 #[cfg(feature = "tracy")]
 mod tracy;          /// Tracy utilities and subroutines.
@@ -32,7 +33,7 @@ use fyrox::{
         visitor::prelude::*
     }, event::{DeviceEvent, Event}, gui::{ message:: { MessageDirection, UiMessage }, text::{Text, TextMessage}, UiNode }, keyboard:: { PhysicalKey, KeyCode }, plugin::{ Plugin, PluginContext, PluginRegistrationContext }, scene::Scene
 };
-use std:: { future::{Future, IntoFuture}, path::Path };
+use std:: { future::{Future, IntoFuture}, path::{ Path, PathBuf }, sync::{ Arc, Mutex, mpsc} };
 use tracing:: { trace, trace_span, debug, debug_span, info, info_span, warn, warn_span, error, error_span, instrument::Instrument, instrument };
 use crate::utilities::*;
 
@@ -47,7 +48,7 @@ const GAME_VERSION:     &'static str    = env!("CARGO_PKG_VERSION");
 const SAVE_FILEPATH:    &'static str    = "./save0.bin";
 
 
-#[derive(Debug, Reflect, Visit, Default)]
+#[derive(Debug, Reflect, Visit)]
 pub struct Game {
 
     /// Active Scene.
@@ -64,6 +65,13 @@ pub struct Game {
     #[visit(skip)]
     #[reflect(hidden)]
     gamepads:       Option<gilrs::Gilrs>,
+
+    #[visit(skip)]
+    #[reflect(hidden)]
+    messenger_rx:   mpsc::Receiver<messenger::GameMessage>,
+    #[visit(skip)]
+    #[reflect(hidden)]
+    messenger_tx:   mpsc::Sender<messenger::GameMessage>,
 
     #[visit(skip)]
     #[reflect(hidden)]
@@ -136,6 +144,31 @@ impl Game {
 
     }
 
+    fn on_message(&self, context: &mut PluginContext) {
+        while let Ok(message) = self.messenger_rx.try_recv() {
+            match message {
+                messenger::GameMessage::InteractiveDialogPoint(idpm)    => {},
+                messenger::GameMessage::Localization(fm)                => {}
+            }
+        }
+    }
+
+}
+
+impl Default for Game {
+    fn default() -> Self {
+        let (messenger_tx, messenger_rx) = mpsc::channel();
+        Game {
+            messenger_rx,
+            messenger_tx,
+            scene:          Handle::NONE,
+            ui:             ui::UiSubset::default(),
+            settings:       settings::Settings::default(),
+            gamepads:       None,
+            localization:   components::fluent::FluentCache::default(),
+            dialog:         components::dialog::Dialog::default(),
+        }
+    }
 }
 
 impl Plugin for Game {
@@ -165,6 +198,9 @@ impl Plugin for Game {
 
         // Run UI updates.
         self.ui.update(context);
+
+        // Run messenger updates.
+        self.on_message(context);
 
         // Retrieve initialized graphics context for updating.
         if let fyrox::engine::GraphicsContext::Initialized(igc) = context.graphics_context {
@@ -296,6 +332,7 @@ impl Plugin for Game {
         // TODO: Register scripts here.
         let script = &context.serialization_context.script_constructors;
         script.add::<player::Player>("Player");
+        script.add::<components::dialog::DialogPoint>("Dialog");
 
     }
     
