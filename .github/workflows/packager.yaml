@@ -2,23 +2,76 @@
 name: Packager
 
 on:
-  workflow_call:
-    inputs:
-      os:
-        type: string
-        required: true
-    # secrets:
-    #   personal_access_token:
-    #     required: true
+  push:
+    tags:
+      - "v*.*"
+      - "v*.*.*"
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  package:
-    runs-on: ${{ inputs.os }}
+
+  testing:
+    uses: ./.github/workflows/test.yaml
+
+  package_matrix:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-    - name: Install Packager Utility
-      run: cargo install cargo-packager
-    - name: Package for ${{ inputs.os }}
-      run: cargo packager --release
+
+      - uses: actions/checkout@v4
+
+      - run: rustup toolchain install stable --profile minimal
+
+      # Cache build deps for faster building later.
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install Packager Utility
+        run: cargo install cargo-packager
+
+      # Package
+      - name: Package for ${{ matrix.os }}
+        run: cargo packager --release
+
+      # Makes webtorrents of release
+      - name: Make torrent
+        uses: devopsx/action-torrent@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          onefile: true
+          files: |
+            .git/
+            .vscode/
+            data/
+            editor/
+            executor/
+            executor-*/
+            game/
+            target/**/*(executor*|exa_*)
+            **/Cargo.*
+            **/*.md
+            .gitignore
+
+      # Create release
+      - name: Make release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ github.ref_name }}
+          fail_on_unmatched_files: false
+          files: |
+            .git/
+            .vscode/
+            data/
+            editor/
+            executor/
+            executor-*/
+            game/
+            target/**/*(executor*|exa_*)
+            torrents/
+            **/Cargo.*
+            **/*.md
+            .gitignore
