@@ -1,7 +1,7 @@
 
 [package]
 name = "game"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Lily Ana Valley <mslilyvalley@icloud.com>"]
 repository = "https://github.com/lilyanavalley/exa"

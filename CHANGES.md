@@ -51,4 +51,13 @@ features surrounding the dialog menu, including rich/markdown text may be implem
 
 ### 0.2.0
 
-todo
+- Introduces the following `game/` objects:
+    - [Dialog](./game/src/components/dialog/mod.rs),
+    - [DialogPoint (script)](./game/src/components/dialog/mod.rs),
+    - [Conversation, ConversationTurn, ConversationTurnBuilder](./game/src/components/dialog/conversation.rs),
+    - [DialogError](./game/src/components/dialog/error.rs),
+    - [DialogSpeaker](./game/src/components/dialog/speaker.rs),
+    - [UiVisibility, SerializedColor](./game/src/components/dialog/ui.rs)
+
+- Documented the `game/` package.
+- Bump version number for `game/` package to `0.2.0`.
