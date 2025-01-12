@@ -8,22 +8,115 @@
 // <https://www.gnu.org/licenses/>.
 
 //!
-//! Game project.
+//! # Experiment A
 //! 
-//! TODO
+//! *[Game plugin](https://fyrox-book.github.io/scripting/plugin.html) for the Fyrox Engine*
+//! 
+//! 
+//! ### ℹ️ Introduction
+//! 
+//! **Experiment A** (aka: **EXA**) is a game plugin built upon the 
+//! [Fyrox Engine](https://fyrox-book.github.io/introduction/introduction.html) and written in Rust. You may find the
+//! [API documentation for Fyrox here](https://docs.rs/fyrox/latest/fyrox/index.html). To find the Source Code of
+//! **EXA**, visit [its GitHub repository](https://github.com/lilyanavalley/exa).
+//! 
+//! **EXA** is currently a blank-slate game, but there exists plans to evolve this repository into a fully-functional 
+//! product in the future. Clones of **EXA** may be made to pursue new game ideas, iterating into **EXB**, **EXC**, and
+//! so forth. Game mechanics for **EXA** are planned to include:
+//! 
+//! - Economy and stock market simulation; trading and merchandising,
+//! - Dialog component with non-linear character/player/narration capabilities, interactive 'choice maps' too,
+//! - Localization component using [Project Fluent](https://projectfluent.org/),
+//! 
+//! 
+//! ### 🔬 Testing
+//! 
+//! Cargo tests may be run (for the entire workspace):
+//! ```bash
+//! cargo test --workspace
+//! ```
+//! 
+//! If you desire a test for a particular Cargo package, run (in this case, `game`):
+//! ```bash
+//! cargo test --package game
+//! ```
+//! 
+//! Specific tests can be performed in a package as such (in this case, `mymodule::mytestfunction`):
+//! ```bash
+//! cargo test --package game mymodule::mytestfunction
+//! ```
+//! 
+//! 
+//! ### 🔧 Build & Run
+//! 
+//! Run the game using the executor (optionally, append `--release`):
+//! ```bash
+//! cargo run --package executor
+//! ```
+//! 
+//! You may also run the game from the editor using the 
+//! ['play' button](https://fyrox-book.github.io/beginning/editor_overview.html#play-mode).
+//! Launch the editor first (optionally, append `--release`):
+//! ```bash
+//! cargo run --package editor
+//! ```
+//! 
+//! 
+//! ### 📦 Packaging
+//! 
+//! This project is set up to use [`cargo-packager`](https://crates.io/crates/cargo-packager) to create and distribute
+//! natively-installable application packages. In addition, there exists a
+//! [platform resource resolver](https://docs.rs/cargo-packager-resource-resolver) and 
+//! [automatic updates](https://docs.rs/cargo-packager-updater) package. 
+//! 
+//! Packages may be created for platforms supported by `cargo-packager` including:
+//! - 🐧 **Linux**
+//!     - `.AppImage`
+//!     - `.deb`
+//!     - Pacman (`PKGBUILD`)
+//! - 🪟 **Windows**
+//!     - `.msi` WiX Toolset
+//!     - `.exe` NSIS
+//! - 🍎 **Mac OS**
+//!     - `.dmg`
+//!     - `.app` bundle
+//! 
+//! As a prerequisite, install the packager using cargo, like so:
+//! ```bash
+//! cargo install cargo-packager --locked
+//! ```
+//! 
+//! To create a package for your native system, run:
+//! ```bash
+//! cargo packager
+//! ```
+//! 
+//! 
+//! ### ☕️ Code Hot Reloading (CHR)
+//! 
+//! **EXA** does not yet support the Hot-Reloading capabilities of Fyrox, but this is subject to change in the future.
+//! After that, this particular notice will disappear and instead mention Hot-Reloading as an implemented feature. For
+//! now, simply close the game and recompile/run.
 //! 
 
 
-pub mod player;     /// Player object and script.
-pub mod settings;   /// Player/game settings.
-pub mod ui;         /// Game User Interface.
-// pub mod eventline;  /// Events processor subroutine.
-mod utilities;      /// Game utilities.
-mod components;     /// Engine components.
-mod messenger;      /// Game messages.
+/// Player object and script.
+pub mod player;
+/// Player/game settings.
+pub mod settings;
+/// Game User Interface.
+pub mod ui;
+// /// Events processor subroutine.
+// pub mod eventline;
+/// Game utilities.
+mod utilities;
+pub mod components;
+/// Game messages.
+pub mod messenger;
 
 #[cfg(feature = "tracy")]
-mod tracy;          /// Tracy utilities and subroutines.
+/// Tracy utilities and subroutines.
+mod tracy;
 
 
 use fyrox::{

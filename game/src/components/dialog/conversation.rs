@@ -10,21 +10,18 @@
 use serde:: { Serialize, Deserialize };
 
 
-// todo: document.
+/// A single conversation.
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Conversation {
 
-    // ? A single conversation, containing turns between characters.
-
-    /// todo: document.
+    /// Turns in a conversation.
     turns:  Vec<ConversationTurn>,
 
 }
 
+/// A single turn containing FTL messages for a particular character, their speaker handle and additional options.
 #[derive(Debug, Default, Serialize, Deserialize)]
 struct ConversationTurn {
-
-    // ? A single turn containing FTL messages for a particular character, their speaker handle and additional options.
 
     messages:   Vec<String>,    // TODO: reference fluent messages by their key
     speaker:    String,
@@ -40,6 +37,7 @@ impl ConversationTurn {
 
 }
 
+/// A builder for [`ConversationTurn`].
 #[derive(Debug)]
 struct ConversationTurnBuilder {
 
@@ -49,6 +47,7 @@ struct ConversationTurnBuilder {
 
 impl ConversationTurnBuilder {
 
+    /// Create a new turn with the `speaker`'s key.
     fn new(speaker: String) -> Self {
         let mut builder = Self {
             inner:  ConversationTurn::default()
@@ -57,16 +56,23 @@ impl ConversationTurnBuilder {
         builder
     }
 
+    /// Specify if turn should be pausable.
+    /// 
+    /// *Default is `false`, which indicates NOT pausable.*. `true` indicates pausable.
     fn with_pausable(mut self, pausable: bool) -> Self {
         self.inner.pausable = Some(pausable);
         self
     }
 
+    /// Specify if turn should be skippable.
+    /// 
+    /// *Default is `false`, which indicates NOT skippable.*. `true` indicates skippable.
     fn with_skippable(mut self, skippable: bool) -> Self {
         self.inner.skippable = Some(skippable);
         self
     }
 
+    /// Build the conversation turn.
     fn build(self) -> ConversationTurn {
         self.inner
     }
@@ -93,6 +99,7 @@ mod tests {
             skippable:  Some(true) 
         };
 
+        // All fields start out just as hard_truth appears.
         assert_eq!(ctb.messages, hard_truth.messages);
         assert_eq!(ctb.speaker, hard_truth.speaker);
         assert_eq!(ctb.pausable, hard_truth.pausable);

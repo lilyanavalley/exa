@@ -32,24 +32,32 @@ pub enum UiVisibility {
 
 impl UiVisibility {
 
+    /// Alias to `UiVisibility::Hidden`.
     pub fn hidden() -> Self {
         UiVisibility::Hidden
     }
 
+    /// Alias to `UiVisibility::TransitionHidden`.
     pub fn hidden_transition() -> Self {
         UiVisibility::TransitionHidden
     }
 
+    /// Alias to `UiVisibility::TransitionShown`.
     pub fn shown_transition() -> Self {
         UiVisibility::TransitionShown
     }
 
+    /// Alias to `UiVisibility::Shown`.
     pub fn shown() -> Self {
         UiVisibility::Shown
     }
 
 }
 
+/// A Serializable Color for the Dialog UI.
+/// 
+/// Contains [RGBA channels](https://en.wikipedia.org/wiki/RGBA_color_model) with 8-bits per channel.
+/// Implements `From<fyrox_core::color::Color>` and `Into<fyrox_core::color::Color>` to convert into game engine types.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SerializedColor {
 

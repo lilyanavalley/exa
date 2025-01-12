@@ -36,11 +36,9 @@ type ConversationHandle = String;  // Flat pointer to a particular `Conversation
 
 /// Dialog Component
 /// 
-/// todo: document.
+/// Manages the internal dialog system and recalls conversations, speakers and routes which are taken in speech.
 #[derive(Debug, Default)]
 pub struct Dialog {
-
-    // ? manages the internal dialog system and recalls conversations, speakers and routes which are taken in speech.
 
     /// User Interface Visibility.
     pub visibility: ui::UiVisibility,
@@ -58,17 +56,17 @@ pub struct Dialog {
 
 impl Dialog {
 
-    /// Alias to `Dialog::default()`.
+    /// Alias to [`Dialog::default()`].
     pub fn new() -> Self {
         Dialog::default()
     }
 
-    // TODO: Document.
+    /// Retrieves active Dialog Ticket.
     pub fn ticket(&self) -> &Option<Ticket> {
         &self.ticket
     }
 
-    // TODO: Document.
+    // ! Wtf is this for? Why did I put this here?
     pub fn ticket_load(&mut self, id: &str) -> Result<usize, error::DialogError> {
         Ok(0)
     }
@@ -78,7 +76,7 @@ impl Dialog {
         self.cache_convos.get(handle)
     }
 
-    // TODO: Document.
+    /// Check if a conversation exists by its handle.
     pub fn conversation_exists(&self, handle: &ConversationHandle) -> bool {
         self.cache_convos.contains_key(handle)
     }
@@ -88,7 +86,7 @@ impl Dialog {
         self.cache_speakers.get(handle)
     }
 
-    // TODO: Document.
+    /// Check if a speaker exists from its handle.
     pub fn speaker_exists(&self, handle: &SpeakerHandle) -> bool {
         self.cache_speakers.contains_key(handle)
     }
@@ -99,7 +97,7 @@ impl Dialog {
 /// 
 /// A 'ticket' to in-progress conversation.
 /// 
-/// Contains the `id` and `state` of this ticket, in reference to a more fully-defined `DialogConvo`.
+/// Contains the `id` and `state` of this ticket, in reference to a more fully-defined [`conversation::Conversation`].
 #[derive(Debug, Default)]
 pub struct Ticket {
 
@@ -108,7 +106,7 @@ pub struct Ticket {
 
 }
 
-/// State of `Ticket`.
+/// State of [`Ticket`].
 #[derive(Debug, Default)]
 pub enum TicketState {
 
@@ -138,14 +136,13 @@ pub enum TicketState {
 #[visit(optional)]
 pub struct DialogPoint {
     
-
     model:  Handle<Node>,
 
 }
 
 impl DialogPoint {
 
-    /// Alias to `InteractiveDialog::default()`.
+    /// Alias to [`DialogPoint::default()`].
     pub fn new() -> Self {
         Self::default()
     }
@@ -180,10 +177,10 @@ impl ScriptTrait for DialogPoint {
 #[derive(Debug, Default)]
 pub enum InteractiveDialogPointMessage {
 
-    /// A message about the current dialog state, from subtype `TicketState`.
+    /// A message about the current dialog state, from subtype [`TicketState`].
     Ticket(TicketState),
 
-    /// A message about the Dialog UI, from subtype `ui::UiVisibility`.
+    /// A message about the Dialog UI, from subtype [`ui::UiVisibility`].
     Ui(UiVisibility),
 
     /// Reset cached conversations and speakers to default state.

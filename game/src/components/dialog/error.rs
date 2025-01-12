@@ -12,6 +12,7 @@ use fluent_bundle::FluentError;
 use fluent_syntax::parser::ParserError;
 
 
+/// Dialog Component errors.
 #[derive(Debug)]
 pub enum DialogError {
 

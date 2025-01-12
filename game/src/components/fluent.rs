@@ -17,7 +17,7 @@ use intl_memoizer::concurrent::IntlLangMemoizer;
 
 
 /// Cached fluent files.
-// #[derive(Default)]
+// TODO: Consider signaling to the application when bundle changes are concurrently being made.
 pub struct FluentCache {
 
     pub bundle:     FluentBundle<FluentResource, IntlLangMemoizer>,
@@ -55,7 +55,6 @@ impl FluentCache {
 
     }
 
-    // TODO: Document this whole thing.
     /// Reads a fluent file based on provided path to data folder `prefix` and the language `lang`.
     pub fn retrieve_file(mut prefix: PathBuf, lang: LanguagesSupported) -> io::Result<Vec<u8>> {
         prefix.push("languages/");
@@ -89,9 +88,10 @@ impl FluentCache {
 
 impl std::fmt::Debug for FluentCache {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        // TODO: Document this whole thing.
         f.debug_struct("FluentCache")
-            // TODO: Reintroduce this next line to debug it:
+            // * self.bundle.locales implements Default, and not the self.bundle
+            // * This is a strange choice, I'm aware. 😭 But I'm lazy.
+            // * Please open an Issue if this proves to be a problem.
             .field("bundle", &self.bundle.locales)
             .field("errors", &self.errors)
         .finish()
@@ -107,7 +107,7 @@ impl Default for FluentCache {
     }
 }
 
-// TODO: Document.
+/// Supported application language.
 #[derive(Debug, PartialEq, Clone)]
 pub enum LanguagesSupported {
 
@@ -119,12 +119,12 @@ pub enum LanguagesSupported {
 
 impl LanguagesSupported {
 
-    // TODO: Document.
+    /// Alias to [`LanguagesSupported::EnglishUS`].
     pub fn lang_en_us() -> Self {
         LanguagesSupported::EnglishUS
     }
 
-    // TODO: Document.
+    /// Alias to [`LanguagesSupported::FrançiasFR`].
     pub fn lang_fr_fr() -> Self {
         LanguagesSupported::FrançiasFR
     }
@@ -139,7 +139,7 @@ impl LanguagesSupported {
         pathbuf
     }
 
-    /// Detremines the *langid* of self, returning `unic_langid_impl::LanguageIdentifier`.
+    /// Detremines the *langid* of self, returning [`unic_langid_impl::LanguageIdentifier`].
     fn langid(&self) -> unic_langid_impl::LanguageIdentifier {
         match self {
             Self::EnglishUS     => langid!("en-US"),
@@ -176,7 +176,7 @@ impl ToString for LanguagesSupported {
     }
 }
 
-// TOOD: Document.
+/// Submessages to [`crate::messenger::GameMessage`].
 pub enum FluentMessage {
 
     /// Add language to bundle cache.
@@ -207,13 +207,13 @@ mod tests {
     #[test]
     fn test_fluentcache() {
 
-        // TODO: Document this whole thing.
-
         let mut fluentcache = FluentCache::default();
 
+        // Default contains nothing.
         assert_eq!(fluentcache.bundle.has_message("ggez"), false);
         assert_eq!(fluentcache.bundle.get_message("ggez"), None);
 
+        // Add resource
         let frfr= "fr fr!!";
         let stringy = format!("ggez = {frfr}");
         let resource = FluentResource::try_new(stringy).unwrap();
@@ -221,6 +221,7 @@ mod tests {
 
         let ggez = fluentcache.bundle.get_message("ggez").unwrap().value().unwrap();
 
+        // Content may be retrieved. Congrats!
         assert_eq!(fluentcache.bundle.has_message("ggez"), true);
         assert_eq!(
             fluentcache.bundle.format_pattern(ggez, None, &mut vec![]),
@@ -238,7 +239,6 @@ mod tests {
             format!("{:?}", fluentcache),
             "FluentCache { bundle: [], errors: [] }"
         );
-        // TODO: Document.
 
     }
 

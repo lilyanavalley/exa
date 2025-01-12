@@ -7,6 +7,14 @@
 // You should have received a copy of the GNU General Public License along with EXA. If not, see 
 // <https://www.gnu.org/licenses/>.
 
+//! Game components.
+//! 
+//! A 'Game Component' is either a game object or engine script for this game.
+//! 
+//! The contents include:
+//! - [`dialog::Dialog`] component and [`dialog::DialogPoint`] script.
+//! - [`fluent::FluentCache`] (aka. Localization) component.
+
 /// Game/character dialog component.
 pub mod dialog;
 
