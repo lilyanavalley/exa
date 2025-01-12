@@ -106,8 +106,6 @@ pub mod player;
 pub mod settings;
 /// Game User Interface.
 pub mod ui;
-// /// Events processor subroutine.
-// pub mod eventline;
 /// Game utilities.
 mod utilities;
 pub mod components;
