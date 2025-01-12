@@ -1,7 +1,8 @@
 
 /target
 *.log
-**/settings.ron
+**/*settings.ron
+**/*settings.ron.old
 *.tracy
 **/.DS_Store
 **/history.bin

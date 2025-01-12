@@ -1,20 +1,26 @@
 
+//! 
+//! TODO
+//! 
+
 use fyrox::{
-    core::{
+    asset::manager::ResourceManager, core::{
+        algebra::*,
         pool::Handle,
         reflect::prelude::*,
         type_traits::prelude::*,
         variable::InheritableVariable,
-        visitor::prelude::*,
-    },
-    event::*,
-    keyboard::{ KeyCode, PhysicalKey },
-    scene::{ Scene, node::Node },
-    script::{ ScriptContext, ScriptTrait },
+        visitor::prelude::*
+    }, engine, event::*, gui::window, keyboard::{ KeyCode, PhysicalKey }, scene::{ self, camera::CameraBuilder, node::Node, Scene }, script::{ ScriptContext, ScriptMessage, ScriptTrait }
 };
+// use strum_macros::*;
+use tracing::{ trace, info, warn, error, instrument };
 use std::fmt::{ Display, Debug };
+use crate::utilities::*;
 
 pub mod health;
+pub mod skybox;
+pub mod perspective;
 
 
 #[derive(Visit, Reflect, Debug, Clone, TypeUuidProvider, ComponentProvider, Default)]
@@ -22,244 +28,261 @@ pub mod health;
 #[visit(optional)]
 pub struct Player {
     
-    #[visit(optional)]
-    #[reflect(hidden)]
-    /// Player health and capacity.
-    pub health:                     PlayerHealth,
+    // ? Player health and capacity.
+    // #[visit(optional)]
+    // #[reflect(hidden)]
+    pub health:                     health::PlayerHealth,
 
     // ? Player movement activated by controls.
+    #[reflect(hidden)]
+    #[visit(skip)]
     pub movement_forward:           bool,
+    #[reflect(hidden)]
+    #[visit(skip)]
     pub movement_backward:          bool,
+    #[reflect(hidden)]
+    #[visit(skip)]
     pub movement_left:              bool,
+    #[reflect(hidden)]
+    #[visit(skip)]
     pub movement_right:             bool,
 
     // ? Block player movement if objects are in the pathway.
+    #[reflect(hidden)]
+    #[visit(skip)]
     pub movement_forward_block:     bool,
+    #[reflect(hidden)]
+    #[visit(skip)]
     pub movement_backward_block:    bool,
+    #[reflect(hidden)]
+    #[visit(skip)]
     pub movement_left_block:        bool,
+    #[reflect(hidden)]
+    #[visit(skip)]
     pub movement_right_block:       bool,
 
-    // ? Interact with the thing in front of the player.
+    // ? *Interact Button*, so that cursor-pointing activations may occur.
+    #[reflect(hidden)]
+    #[visit(skip)]
     pub do_interact:                bool,
 
-    // ? Crouch to sneak or for scene accessibility.
-    pub do_crouch:                  bool,
-
-    // ? Open player inventory.
-    pub do_inventoryopen:           bool,
-
     // ? Player camera perspective.
-    pub perspective:                PlayerPerspective,
-    pub camera:                     Handle<Node>
+    pub perspective:                perspective::PlayerPerspective,
+    pub camera:                     Handle<Node>,
+
+    // ? Accept/ignore input if game window is focused/unfocused.
+    pub input_focus:                bool,   // Whether game window has focus from the player.
+    pub input_block:                bool,   // Block input for keybinding or GUI?
+
+    // ? Player model (in case we want 3rd person view...)
+    pub playermodel:                Handle<Node>,
 
 }
 
 impl Player {
 
-    pub fn new() -> Self {
-        Player::default()
-    }
+    #[instrument(skip(resource_manager))]
+    pub async fn new(scene: &mut Scene, resource_manager: &ResourceManager) -> Self {
+        
+        // Set up *skybox Future*, camera, perspective and rigid body model.
+        let skybox = skybox::request(resource_manager);
+        let camera: Handle<Node>;
+        let perspective = perspective::PlayerPerspective::default();
+        let playermodel = fyrox::scene::rigidbody::RigidBodyBuilder::new(
 
-    pub fn camera(&self) -> &Handle<Node> {
-        &self.camera
-    }
+            fyrox::scene::base::BaseBuilder::new()
+            .with_children(&[
+                {
+                    camera = CameraBuilder::new(
+                        scene::base::BaseBuilder::new()
+                    )
+                    .with_skybox(skybox.await)
+                    .with_fov(perspective.fov().unwrap()) // * FOV should always be `FirstPerson` by default.
+                    .build(&mut scene.graph);
+                    camera
+                },
+                // Add capsule collider for the rigid body.
+                scene::collider::ColliderBuilder::new(scene::base::BaseBuilder::new())
+                .with_shape(scene::collider::ColliderShape::capsule_y(0.25, 0.2))
+                .build(&mut scene.graph)
+            ])
+            
+        )
+            .with_locked_rotations(true)
+            .with_can_sleep(false)
+            .build(&mut scene.graph);
 
-    pub fn set_camera(&mut self, new: Handle<Node>) {
-        self.camera = new;
+        // Other defaults are also initialized.
+        Player {
+            camera,
+            playermodel,
+            ..Default::default()
+        }
+
     }
 
 }
 
 impl ScriptTrait for Player {
-    
 
+    #[instrument(skip(context))]
     fn on_update(&mut self, context: &mut ScriptContext) {
+
+        // ? Let dev know this scene is missing Player script node attachments...
+        if self.camera.is_none() || self.playermodel.is_none() {
+            error!(
+                "This scene's Player script has missing nodes: {:?} - {:?}",
+                self.camera,
+                self.playermodel
+            );
+        }
+
+        // TODO: Document.
+        context.scene.graph[self.camera].local_transform_mut().set_rotation(
+            UnitQuaternion::from_axis_angle(&Vector3::x_axis(), self.perspective.pitch().to_radians()),
+        );
+
+        // TODO: Document.
+        let body = context.scene.graph[self.playermodel]
+            .as_rigid_body_mut();
+
+        // TODO: Document.
+        let mut velocity = Vector3::new(0.0, body.lin_vel().y, 0.0);
  
-    }
-
-}
-
-#[test]
-fn test_playerhealth_safety() {
-
-    let mut playerhealth = PlayerHealth::default();
-
-    // LP and CAP start at 50.
-    assert_eq!(playerhealth.lifepoints, 50);
-    assert_eq!(playerhealth.capacity, 50);
-
-    // You can't add more LP than your CAP.
-    assert_eq!(playerhealth.lifepoints_add(10), &50);
-
-    // Capacity is modified through `.capacity_change()`
-    assert_eq!(playerhealth.capacity_change(72), Ok(72));
-
-    // LP does not change with CAP changes; Never overflows.
-    assert_eq!(playerhealth.lifepoints, 50);
-    assert_eq!(playerhealth.lifepoints_add(u16::MAX), &72);
-
-    // Player is alive as long as LP > 0.
-    assert!(playerhealth.is_alive());
-
-    // Subtracting never overflows either.
-    assert_eq!(playerhealth.lifepoints_sub(72), &0);
-    assert_eq!(playerhealth.lifepoints_sub(1), &0);
-
-    // Zero LP equates death.
-    assert!(playerhealth.is_dead());
-
-}
-
-#[derive(Visit, Reflect, Debug, Clone, TypeUuidProvider, ComponentProvider)]
-#[type_uuid(id = "18278f64-52a5-44d2-bfb7-b7ecdb0a9924")]
-#[visit(optional)]
-pub struct PlayerHealth {
-
-    /// Current health points.
-    pub lifepoints: u16,
-
-    /// Capacity of health points, as in, the maximum amount of points.
-    capacity:   u16,
-
-}
-
-impl PlayerHealth {
-    
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Return health capacity.
-    pub fn capacity(&self) -> &u16 {
-        &self.capacity
-    }
-
-    /// Return lifepoints at the current frame.
-    pub fn lifepoints(&self) -> &u16 {
-        &self.lifepoints
-    }
-
-    /// Change health capacity to the `new` value provided.
-    /// Returns a `Result` which indicates if the provided `new` integer is valid, or in other words, anything besides 
-    /// zero. A value of zero is illogical and this function returns an `Err` if zero is provided.
-    /// 
-    /// ```lifepoints = new```
-    pub fn capacity_change(&mut self, new: u16) -> Result<u16, ()> {
-        if new >= 1 {
-            self.capacity = new;
-            Ok(self.capacity)
+        // Move playermodel camera gimbal across floorplane when activated controls call for it.
+        if self.movement_backward {
+            velocity -= body.look_vector();
+        } if self.movement_forward {
+            velocity += body.look_vector();
+        } if self.movement_left {
+            velocity += body.side_vector();
+        } if self.movement_right {
+            velocity -= body.side_vector();
         }
-        else {
-            Err(())
+
+        body.set_lin_vel(velocity);
+
+        // TODO: Document.
+        body.local_transform_mut()
+            .set_rotation(UnitQuaternion::from_axis_angle(
+                &Vector3::y_axis(),
+                self.perspective.yaw().to_radians()
+            ));
+
+
+    }
+
+    #[instrument(skip(context))]
+    fn on_os_event(&mut self, event: &Event<()>, context: &mut ScriptContext) {
+        
+        // Run this code when the graphics context is initialized.
+        with_igc(context.graphics_context, |igc| {
+
+            // Grab cursor on focus.
+            if self.input_focus {
+                igc.window.set_cursor_grab(fyrox::window::CursorGrabMode::Confined)
+                // Some platforms have no support for cursor grab.
+                .or_else(|_e| igc.window.set_cursor_grab(fyrox::window::CursorGrabMode::Locked));
+            }
+
+            // Release cursor when focus is lost.
+            else {
+                igc.window.set_cursor_grab(fyrox::window::CursorGrabMode::None);
+            }
+
+            // Enable/disable cursor depending on whether we block input.
+            igc.window.set_cursor_visible(self.input_block);
+
+        });
+
+        match event {
+            
+            Event::WindowEvent { window_id, event } => {
+
+                // Enable/disable input if the game window is focused/unfocused.
+                if let WindowEvent::Focused(focus) = event {
+
+                    // Controls how *we* see window focus.
+                    self.input_focus = focus.clone();
+                    self.input_block = focus | true;
+
+                }
+
+                // Cursor entering window means player wants to direct their pointer at game.
+                if let WindowEvent::CursorEntered { device_id } = event {
+                    self.input_block = false;
+                    self.input_focus = true; // TODO: Maybe remove, test and debug this pls.
+                }
+
+                // Cursor leaving window means player wants to direct their focus elsewhere.
+                if let WindowEvent::CursorLeft { device_id } = event {
+                    self.input_block = true;
+                    self.input_focus = false;
+                }
+
+                // Keyboard input.
+                if let WindowEvent::KeyboardInput { event, .. } = event {
+
+                    // Pressed keys are mapped to movement modifiers.
+                    if 
+                        event.state.is_pressed() && // Only *keypresses* are read.
+                        self.input_focus &&         // Window must have focus.
+                        !self.input_block           // Game must not block input.
+                    {
+                        if let PhysicalKey::Code(keycode) = event.physical_key {
+                            println!("Key {:?}", keycode);
+                            match keycode {
+                                
+                                KeyCode::Escape => {
+                                    self.input_focus = false;
+                                    self.input_block = true;
+                                },
+
+                                KeyCode::KeyW => self.movement_forward = true,
+                                KeyCode::KeyA => self.movement_left = true,
+                                KeyCode::KeyS => self.movement_backward = true,
+                                KeyCode::KeyD => self.movement_right = true,
+                                KeyCode::KeyE => self.do_interact = true,
+                                _ => {}
+                            };
+                        };
+                    };
+
+                }
+
+                // Mouse wheel input.
+                if let WindowEvent::MouseWheel { delta, .. } = event {
+
+                }
+
+            },
+
+            Event::DeviceEvent { event, .. } => {
+
+                // Device events are only accepted if we have window focus from the player.
+                if self.input_focus && !self.input_block {
+                    // Raw Mouse movements move the camera.
+                    if let DeviceEvent::MouseMotion { delta } = event {
+                        self.perspective.set_yaw( self.perspective.yaw() - delta.0 as f32);
+                        self.perspective.set_pitch((self.perspective.pitch() + delta.1 as f32)
+                            .clamp(-90.0, 90.0));
+                    }
+                }
+
+            },
+
+            _   => {},
+
         }
+
     }
 
-    /// Add the amount of lifepoints in `add`. Returns the new value.
-    /// This function saturates at the bounds of the integer instead of overflowing.
-    /// 
-    /// ```lifepoints = lifepoints + add ```
-    pub fn lifepoints_add(&mut self, add: u16) -> &u16 {
-        self.lifepoints = self.lifepoints.saturating_add(add);
-        if self.capacity < self.lifepoints {
-            self.lifepoints = self.capacity;
-        }
-        &self.lifepoints
+    #[instrument(skip(context))]
+    fn on_start(&mut self, #[allow(unused_variables)] context: &mut ScriptContext) {
+        
+        let gameplugin = context.plugins.get_mut::<crate::Game>();
+        let scene = gameplugin.scene;
+
     }
 
-    /// Subtract the amount of lifepoints in `subtract`. Returns the new value.
-    /// This function saturates at the bounds of the integer instead of overflowing.
-    /// 
-    /// ```lifepoints = lifepoints - subtract```
-    pub fn lifepoints_sub(&mut self, subtract: u16) -> &u16 {
-        self.lifepoints = self.lifepoints.saturating_sub(subtract);
-        &self.lifepoints
-    }
-
-    pub fn is_alive(&self) -> bool {
-        if self.lifepoints != 0 { true }
-        else { false }
-    }
-
-    pub fn is_dead(&self) -> bool {
-        if self.lifepoints == 0 { true }
-        else { false }
-    }
-
-}
-
-impl Default for PlayerHealth {
-    fn default() -> Self {
-        PlayerHealth {
-            lifepoints:     50,
-            capacity:       50
-        }
-    }
-}
-
-impl Display for PlayerHealth {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("{}/{}", self.lifepoints.to_string(), self.capacity.to_string()))
-    }
-}
-
-#[derive(Visit, Reflect, Debug, Clone)]
-pub enum PlayerPerspective {
-
-    FirstPerson {
-        // ? Pitch & Yaw for mouse/controller first-person perspective.
-        fov:                        f32,
-        visualfield_pitch:          f32,
-        visualfield_yaw:            f32,
-    },
-
-    ThirdPerson {
-        visualfield_pitch:          f32,
-        visualfield_yaw:            f32,
-    }
-
-}
-
-impl PlayerPerspective {
-
-    pub fn fov(&self) -> Option<&f32> {
-        match self {
-            PlayerPerspective::FirstPerson { fov, .. } => Some(fov),
-            PlayerPerspective::ThirdPerson { .. } => None
-        }
-    }
-
-    pub fn pitch(&self) -> &f32 {
-        match self {
-            PlayerPerspective::FirstPerson { visualfield_pitch, .. } => visualfield_pitch,
-            PlayerPerspective::ThirdPerson { visualfield_pitch, .. } => visualfield_pitch
-        }
-    }
-
-    pub fn yaw(&self) -> &f32 {
-        match self {
-            PlayerPerspective::FirstPerson { visualfield_yaw, .. } => visualfield_yaw,
-            PlayerPerspective::ThirdPerson { visualfield_yaw, .. } => visualfield_yaw
-        }
-    }
-
-}
-
-impl Display for PlayerPerspective {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("{perspective}, pitch {pitch}, yaw {yaw}",
-            perspective = self.type_name(),
-            pitch = self.pitch(),
-            yaw = self.yaw()
-        ))
-    }
-}
-
-impl Default for PlayerPerspective {
-    fn default() -> Self {
-        PlayerPerspective::FirstPerson {
-            fov: 75.0,
-            visualfield_pitch: 0.0,
-            visualfield_yaw: 0.0
-        }
-    }
 }
