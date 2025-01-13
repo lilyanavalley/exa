@@ -16,6 +16,7 @@ jobs:
     uses: ./.github/workflows/test.yaml
 
   package_matrix:
+    needs: testing
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -59,7 +60,7 @@ jobs:
       - name: Make release
         uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.SOFTPROPS_ACTION_GH_RELEASE }}
           name: ${{ github.ref_name }}
           fail_on_unmatched_files: false
           files: |
