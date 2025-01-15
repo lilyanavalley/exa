@@ -9,7 +9,8 @@ license = "GPL-3.0-or-later"
 
 [package.metadata.packager]
 before-packaging-command = "cargo build --release"
-product-name = "exa"
+name = "exa"
+product-name = "exa" # Appears as the installer file name on MacOS.
 description = "Experiment A"
 long-description = "Experiment A."
 category = "Game"
