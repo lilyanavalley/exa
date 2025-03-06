@@ -20,3 +20,6 @@ pub mod dialog;
 
 /// [Fluent](https://projectfluent.org/) implementation.
 pub mod fluent;
+
+/// Font collection manager.
+pub mod fonts;

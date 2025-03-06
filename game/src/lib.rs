@@ -172,6 +172,10 @@ pub struct Game {
     #[reflect(hidden)]
     dialog:         components::dialog::Dialog,
 
+    #[visit(skip)]
+    #[reflect(hidden)]
+    fonts:          components::fonts::Fonts
+
 }
 
 impl Game {
@@ -258,6 +262,7 @@ impl Default for Game {
             gamepads:       None,
             localization:   components::fluent::FluentCache::default(),
             dialog:         components::dialog::Dialog::default(),
+            fonts:          components::fonts::Fonts::default()
         }
     }
 }
@@ -453,6 +458,19 @@ impl Plugin for Game {
             | data, game: &mut Game, _context | {
                 game.localization.bundle = data.unwrap(); // TODO: Replace .unwrap for stability.
                 trace!("End FTL default fetch.");
+            }
+        );
+
+        // ? Starts plugin task to fetch US English fluent file.
+        let trace_fontsfetch = trace_span!("Font fetch Future");
+        context.task_pool.spawn_plugin_task(
+            // TODO: Insert data prefix in packager branch.
+            components::fonts::Fonts::load(Path::new("data/"), context.resource_manager.clone())
+                .into_future()
+                .instrument(trace_fontsfetch),
+            | data, game: &mut Game, _context | {
+                game.fonts = data.unwrap(); // TODO: Replace .unwrap for stability.
+                trace!("End font fetch.");
             }
         );
 
