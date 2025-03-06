@@ -9,6 +9,7 @@
 
 use std:: {
     collections::BTreeMap,
+    path::PathBuf
 };
 use fluent_bundle::FluentMessage;
 use fyrox:: {
@@ -50,7 +51,9 @@ pub struct Dialog {
     cache_convos:   BTreeMap<ConversationHandle, conversation::Conversation>,
 
     // Cache of speakers ('characters') in a conversation.
-    cache_speakers: BTreeMap<SpeakerHandle, speaker::DialogSpeaker>
+    cache_speakers: BTreeMap<SpeakerHandle, speaker::DialogSpeaker>,
+
+    controller:     DialogController
 
 }
 
@@ -106,6 +109,15 @@ pub struct Ticket {
 
 }
 
+impl From<ConversationHandle> for Ticket {
+    fn from(value: ConversationHandle) -> Self {
+        Ticket {
+            id:     value,
+            state:  TicketState::default()
+        }
+    }
+}
+
 /// State of [`Ticket`].
 #[derive(Debug, Default)]
 pub enum TicketState {
@@ -125,6 +137,16 @@ pub enum TicketState {
 
     /// Dialog is being cancelled by the player.
     Cancelling,
+
+}
+
+#[derive(Debug, Default)]
+struct DialogController {
+
+    // Which files are currently cached?
+    cached_files:   Vec<PathBuf>,
+
+    
 
 }
 
