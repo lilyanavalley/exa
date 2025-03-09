@@ -9,6 +9,10 @@ version = "0.34.0"
 [workspace.dependencies.fyroxed_base]
 version = "0.21.0"
 
+[profile.release]
+debug = true
+
+
 # Optimize the engine in debug builds, but leave project's code non-optimized.
 # By using this technique, you can still debug you code, but engine will be fully
 # optimized and debug builds won't be terribly slow. With this option, you can
